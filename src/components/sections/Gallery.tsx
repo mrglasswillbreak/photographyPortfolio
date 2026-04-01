@@ -1,15 +1,30 @@
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { galleryImages } from '../../data';
 import { fadeIn, staggerContainer, imageFadeIn, imageHover, overlayHover } from '../../utils/animations';
+import ImageLightbox from '../ui/ImageLightbox';
 
 const getImageHeight = (index: number) => {
   const heights = ['h-80', 'h-96', 'h-72'];
   return heights[index % 3];
 };
 
+interface SelectedImage {
+  src: string;
+  alt: string;
+}
+
 function Gallery() {
   const images = useMemo(() => galleryImages, []);
+  const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null);
+
+  const openLightbox = useCallback((image: SelectedImage) => {
+    setSelectedImage(image);
+  }, []);
+
+  const closeLightbox = useCallback(() => {
+    setSelectedImage(null);
+  }, []);
 
   return (
     <section id="gallery" className="py-20 md:py-32 bg-neutral-50 dark:bg-neutral-900">
@@ -49,8 +64,9 @@ function Gallery() {
               initial="hidden"
               whileInView="visible"
               viewport={{ amount: 0.2 }}
-              className="break-inside-avoid group relative overflow-hidden"
+              className="break-inside-avoid group relative overflow-hidden cursor-pointer"
               whileHover="hover"
+              onClick={() => openLightbox({ src: image.src, alt: image.alt })}
             >
               <motion.div 
                 variants={imageHover} 
@@ -81,6 +97,14 @@ function Gallery() {
             </motion.div>
           ))}
         </motion.div>
+
+        {/* Lightbox */}
+        <ImageLightbox
+          src={selectedImage?.src ?? ''}
+          alt={selectedImage?.alt ?? ''}
+          isOpen={selectedImage !== null}
+          onClose={closeLightbox}
+        />
       </div>
     </section>
   );
