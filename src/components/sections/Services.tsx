@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, User, Mountain, Camera } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -11,7 +12,9 @@ const iconMap: Record<string, LucideIcon> = {
   Camera,
 };
 
-export default function Services() {
+function Services() {
+  const serviceItems = useMemo(() => services, []);
+
   return (
     <section id="services" className="py-20 md:py-32 bg-white dark:bg-neutral-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -42,10 +45,10 @@ export default function Services() {
           viewport={{ once: true, margin: '-100px' }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
         >
-          {services.map((service) => {
+          {serviceItems.map((service) => {
             const Icon = iconMap[service.icon];
             return (
-              <motion.div
+              <motion.article
                 key={service.id}
                 variants={staggerItem}
                 whileHover={{ y: -10 }}
@@ -53,7 +56,7 @@ export default function Services() {
                            hover:bg-neutral-100 dark:hover:bg-neutral-800 
                            transition-colors duration-500 cursor-pointer"
               >
-                <motion.div
+                <div
                   className="w-14 h-14 mb-6 flex items-center justify-center 
                              bg-neutral-200 dark:bg-neutral-800 rounded-full
                              group-hover:bg-neutral-900 dark:group-hover:bg-white
@@ -63,15 +66,16 @@ export default function Services() {
                     className="w-6 h-6 text-neutral-700 dark:text-neutral-300
                                group-hover:text-white dark:group-hover:text-neutral-900
                                transition-colors duration-500"
+                    aria-hidden="true"
                   />
-                </motion.div>
+                </div>
                 <h3 className="text-xl font-medium text-neutral-900 dark:text-white mb-3">
                   {service.title}
                 </h3>
                 <p className="text-neutral-600 dark:text-neutral-400 text-sm leading-relaxed">
                   {service.description}
                 </p>
-              </motion.div>
+              </motion.article>
             );
           })}
         </motion.div>
@@ -79,3 +83,5 @@ export default function Services() {
     </section>
   );
 }
+
+export default memo(Services);

@@ -1,8 +1,9 @@
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Sun, Moon } from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from '../../hooks/useTheme';
 
-export default function ThemeToggle() {
+function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -29,3 +30,5 @@ export default function ThemeToggle() {
     </motion.button>
   );
 }
+
+export default memo(ThemeToggle);

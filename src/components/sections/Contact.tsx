@@ -1,35 +1,41 @@
-import { useState } from 'react';
-import type { FormEvent } from 'react';
+import { useState, useCallback, memo } from 'react';
+import type { FormEvent, ChangeEvent } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Mail, Phone, MapPin } from 'lucide-react';
 import { fadeIn, staggerContainer, staggerItem } from '../../utils/animations';
 
-export default function Contact() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-  });
+const contactInfo = [
+  { icon: Mail, label: 'Email', value: 'hello@lenscraft.com' },
+  { icon: Phone, label: 'Phone', value: '+1 (555) 123-4567' },
+  { icon: MapPin, label: 'Location', value: 'New York, NY' },
+] as const;
+
+const initialFormData = {
+  name: '',
+  email: '',
+  subject: '',
+  message: '',
+};
+
+function Contact() {
+  const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }, []);
+
+  const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate form submission
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setIsSubmitting(false);
     setSubmitted(true);
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    setFormData(initialFormData);
     setTimeout(() => setSubmitted(false), 3000);
-  };
-
-  const contactInfo = [
-    { icon: Mail, label: 'Email', value: 'hello@lenscraft.com' },
-    { icon: Phone, label: 'Phone', value: '+1 (555) 123-4567' },
-    { icon: MapPin, label: 'Location', value: 'New York, NY' },
-  ];
+  }, []);
 
   return (
     <section id="contact" className="py-20 md:py-32 bg-white dark:bg-neutral-950">
@@ -70,7 +76,7 @@ export default function Contact() {
                 className="flex items-start gap-4"
               >
                 <div className="w-12 h-12 flex items-center justify-center bg-neutral-100 dark:bg-neutral-900 rounded-full">
-                  <info.icon className="w-5 h-5 text-neutral-700 dark:text-neutral-300" />
+                  <info.icon className="w-5 h-5 text-neutral-700 dark:text-neutral-300" aria-hidden="true" />
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
@@ -102,9 +108,11 @@ export default function Contact() {
                 <input
                   type="text"
                   id="name"
+                  name="name"
                   required
+                  aria-required="true"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={handleChange}
                   className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-900 
                              border border-neutral-200 dark:border-neutral-800
                              text-neutral-900 dark:text-white
@@ -123,9 +131,11 @@ export default function Contact() {
                 <input
                   type="email"
                   id="email"
+                  name="email"
                   required
+                  aria-required="true"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={handleChange}
                   className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-900 
                              border border-neutral-200 dark:border-neutral-800
                              text-neutral-900 dark:text-white
@@ -146,9 +156,11 @@ export default function Contact() {
               <input
                 type="text"
                 id="subject"
+                name="subject"
                 required
+                aria-required="true"
                 value={formData.subject}
-                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                onChange={handleChange}
                 className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-900 
                            border border-neutral-200 dark:border-neutral-800
                            text-neutral-900 dark:text-white
@@ -167,10 +179,12 @@ export default function Contact() {
               </label>
               <textarea
                 id="message"
+                name="message"
                 required
+                aria-required="true"
                 rows={6}
                 value={formData.message}
-                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                onChange={handleChange}
                 className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-900 
                            border border-neutral-200 dark:border-neutral-800
                            text-neutral-900 dark:text-white
@@ -197,7 +211,7 @@ export default function Contact() {
                 'Message Sent!'
               ) : (
                 <>
-                  Send Message <Send className="w-4 h-4" />
+                  Send Message <Send className="w-4 h-4" aria-hidden="true" />
                 </>
               )}
             </motion.button>
@@ -207,3 +221,5 @@ export default function Contact() {
     </section>
   );
 }
+
+export default memo(Contact);

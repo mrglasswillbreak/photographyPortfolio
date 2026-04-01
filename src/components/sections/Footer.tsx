@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Globe, Camera, Share2 } from 'lucide-react';
 import { fadeIn } from '../../utils/animations';
@@ -7,10 +8,10 @@ const socialLinks = [
   { icon: Globe, href: '#', label: 'Website' },
   { icon: Mail, href: '#', label: 'Email' },
   { icon: Share2, href: '#', label: 'Share' },
-];
+] as const;
 
-export default function Footer() {
-  const currentYear = new Date().getFullYear();
+function Footer() {
+  const currentYear = useMemo(() => new Date().getFullYear(), []);
 
   return (
     <motion.footer
@@ -32,7 +33,7 @@ export default function Footer() {
           </motion.a>
 
           {/* Social Links */}
-          <div className="flex items-center gap-4">
+          <nav className="flex items-center gap-4" aria-label="Social media links">
             {socialLinks.map((social) => (
               <motion.a
                 key={social.label}
@@ -47,10 +48,10 @@ export default function Footer() {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <social.icon className="w-5 h-5" />
+                <social.icon className="w-5 h-5" aria-hidden="true" />
               </motion.a>
             ))}
-          </div>
+          </nav>
 
           {/* Copyright */}
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
@@ -61,3 +62,5 @@ export default function Footer() {
     </motion.footer>
   );
 }
+
+export default memo(Footer);
