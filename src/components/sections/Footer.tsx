@@ -1,12 +1,12 @@
 import { motion } from 'framer-motion';
-import { Instagram, Twitter, Facebook, Linkedin } from 'lucide-react';
+import { Mail, Globe, Camera, Share2 } from 'lucide-react';
 import { fadeIn } from '../../utils/animations';
 
 const socialLinks = [
-  { icon: Instagram, href: '#', label: 'Instagram' },
-  { icon: Twitter, href: '#', label: 'Twitter' },
-  { icon: Facebook, href: '#', label: 'Facebook' },
-  { icon: Linkedin, href: '#', label: 'LinkedIn' },
+  { icon: Camera, href: '#', label: 'Portfolio' },
+  { icon: Globe, href: '#', label: 'Website' },
+  { icon: Mail, href: '#', label: 'Email' },
+  { icon: Share2, href: '#', label: 'Share' },
 ];
 
 export default function Footer() {

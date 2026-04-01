@@ -1,4 +1,5 @@
-import { useState, FormEvent } from 'react';
+import { useState } from 'react';
+import type { FormEvent } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Mail, Phone, MapPin } from 'lucide-react';
 import { fadeIn, staggerContainer, staggerItem } from '../../utils/animations';
