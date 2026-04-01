@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Heart, User, Mountain, Camera, LucideIcon } from 'lucide-react';
+import { Heart, User, Mountain, Camera } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { services } from '../../data';
 import { fadeIn, staggerContainer, staggerItem } from '../../utils/animations';
 

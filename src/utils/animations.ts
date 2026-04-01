@@ -1,4 +1,4 @@
-import { Variants } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 
 export const fadeIn: Variants = {
   hidden: {
@@ -84,14 +84,14 @@ export const imageHover = {
     scale: 1,
     transition: {
       duration: 0.4,
-      ease: [0.25, 0.46, 0.45, 0.94],
+      ease: [0.25, 0.46, 0.45, 0.94] as const,
     },
   },
   hover: {
     scale: 1.05,
     transition: {
       duration: 0.4,
-      ease: [0.25, 0.46, 0.45, 0.94],
+      ease: [0.25, 0.46, 0.45, 0.94] as const,
     },
   },
 };
@@ -101,14 +101,14 @@ export const overlayHover = {
     opacity: 0,
     transition: {
       duration: 0.3,
-      ease: 'easeInOut',
+      ease: 'easeInOut' as const,
     },
   },
   hover: {
     opacity: 1,
     transition: {
       duration: 0.3,
-      ease: 'easeInOut',
+      ease: 'easeInOut' as const,
     },
   },
 };
