@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Heart, User, Mountain, Camera } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { services } from '../../data';
-import { fadeIn, staggerContainer, staggerItem } from '../../utils/animations';
+import { fadeIn, cardFadeIn } from '../../utils/animations';
 
 const iconMap: Record<string, LucideIcon> = {
   Heart,
@@ -23,7 +23,7 @@ function Services() {
           variants={fadeIn}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: '-100px' }}
+          viewport={{ once: true, amount: 0.3 }}
           className="text-center mb-16"
         >
           <span className="text-sm tracking-[0.3em] text-neutral-500 dark:text-neutral-400 uppercase">
@@ -38,20 +38,18 @@ function Services() {
         </motion.div>
 
         {/* Services Grid */}
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-100px' }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-        >
-          {serviceItems.map((service) => {
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {serviceItems.map((service, index) => {
             const Icon = iconMap[service.icon];
             return (
               <motion.article
                 key={service.id}
-                variants={staggerItem}
-                whileHover={{ y: -10 }}
+                variants={cardFadeIn}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ delay: index * 0.15 }}
+                whileHover={{ y: -10, scale: 1.02 }}
                 className="group p-8 bg-neutral-50 dark:bg-neutral-900 rounded-sm 
                            hover:bg-neutral-100 dark:hover:bg-neutral-800 
                            transition-colors duration-500 cursor-pointer"
@@ -78,7 +76,7 @@ function Services() {
               </motion.article>
             );
           })}
-        </motion.div>
+        </div>
       </div>
     </section>
   );
