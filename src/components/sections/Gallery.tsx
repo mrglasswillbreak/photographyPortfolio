@@ -19,7 +19,7 @@ function Gallery() {
           variants={fadeIn}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ amount: 0.3 }}
           className="text-center mb-16"
         >
           <span className="text-sm tracking-[0.3em] text-neutral-500 dark:text-neutral-400 uppercase">
@@ -39,7 +39,7 @@ function Gallery() {
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.1 }}
+          viewport={{ amount: 0.1 }}
           className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4"
         >
           {images.map((image, index) => (
@@ -48,7 +48,7 @@ function Gallery() {
               variants={imageFadeIn}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
+              viewport={{ amount: 0.2 }}
               className="break-inside-avoid group relative overflow-hidden"
               whileHover="hover"
             >
