@@ -1,8 +1,16 @@
+import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { galleryImages } from '../../data';
 import { fadeIn, staggerContainer, staggerItem, imageHover, overlayHover } from '../../utils/animations';
 
-export default function Gallery() {
+const getImageHeight = (index: number) => {
+  const heights = ['h-80', 'h-96', 'h-72'];
+  return heights[index % 3];
+};
+
+function Gallery() {
+  const images = useMemo(() => galleryImages, []);
+
   return (
     <section id="gallery" className="py-20 md:py-32 bg-neutral-50 dark:bg-neutral-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -34,7 +42,7 @@ export default function Gallery() {
           viewport={{ once: true, margin: '-100px' }}
           className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4"
         >
-          {galleryImages.map((image, index) => (
+          {images.map((image, index) => (
             <motion.div
               key={image.id}
               variants={staggerItem}
@@ -46,10 +54,11 @@ export default function Gallery() {
                 <img
                   src={image.src}
                   alt={image.alt}
-                  className={`w-full object-cover ${
-                    index % 3 === 0 ? 'h-80' : index % 3 === 1 ? 'h-96' : 'h-72'
-                  }`}
+                  width={800}
+                  height={600}
+                  className={`w-full object-cover ${getImageHeight(index)}`}
                   loading="lazy"
+                  decoding="async"
                 />
                 {/* Overlay */}
                 <motion.div
@@ -70,3 +79,5 @@ export default function Gallery() {
     </section>
   );
 }
+
+export default memo(Gallery);

@@ -1,7 +1,16 @@
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { fadeIn, fadeInUp } from '../../utils/animations';
 
-export default function About() {
+const ABOUT_IMAGE_URL = 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=800&q=80';
+
+const stats = [
+  { number: '10+', label: 'Years Experience' },
+  { number: '500+', label: 'Projects Completed' },
+  { number: '50+', label: 'Awards Won' },
+] as const;
+
+function About() {
   return (
     <section id="about" className="py-20 md:py-32 bg-neutral-50 dark:bg-neutral-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -18,13 +27,20 @@ export default function About() {
               <motion.img
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.6 }}
-                src="https://images.unsplash.com/photo-1554151228-14d9def656e4?w=800&q=80"
+                src={ABOUT_IMAGE_URL}
                 alt="Photographer portrait"
+                width={800}
+                height={1000}
                 className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
               />
             </div>
             {/* Decorative frame */}
-            <div className="absolute -bottom-4 -right-4 w-full h-full border-2 border-neutral-300 dark:border-neutral-700 -z-10" />
+            <div 
+              className="absolute -bottom-4 -right-4 w-full h-full border-2 border-neutral-300 dark:border-neutral-700 -z-10" 
+              aria-hidden="true"
+            />
           </motion.div>
 
           {/* Content */}
@@ -62,11 +78,7 @@ export default function About() {
 
             {/* Stats */}
             <div className="mt-12 grid grid-cols-3 gap-8">
-              {[
-                { number: '10+', label: 'Years Experience' },
-                { number: '500+', label: 'Projects Completed' },
-                { number: '50+', label: 'Awards Won' },
-              ].map((stat, index) => (
+              {stats.map((stat, index) => (
                 <motion.div
                   key={stat.label}
                   initial={{ opacity: 0, y: 20 }}
@@ -89,3 +101,5 @@ export default function About() {
     </section>
   );
 }
+
+export default memo(About);

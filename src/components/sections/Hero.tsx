@@ -1,8 +1,13 @@
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { fadeIn, fadeInUp } from '../../utils/animations';
 
-export default function Hero() {
+const HERO_BG_STYLE = {
+  backgroundImage: 'url(https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1920&q=80)',
+} as const;
+
+function Hero() {
   return (
     <section
       id="home"
@@ -17,10 +22,7 @@ export default function Hero() {
       >
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage:
-              'url(https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1920&q=80)',
-          }}
+          style={HERO_BG_STYLE}
         />
         <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
       </motion.div>
@@ -101,10 +103,13 @@ export default function Hero() {
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
           className="text-white/60 hover:text-white transition-colors"
+          aria-label="Scroll to gallery"
         >
-          <ChevronDown size={32} />
+          <ChevronDown size={32} aria-hidden="true" />
         </motion.a>
       </motion.div>
     </section>
   );
 }
+
+export default memo(Hero);

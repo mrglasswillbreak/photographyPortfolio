@@ -1,4 +1,12 @@
-import type { Variants } from 'framer-motion';
+import type { Variants, Transition } from 'framer-motion';
+
+// Shared easing curve for consistent animations
+export const EASE_SMOOTH = [0.25, 0.46, 0.45, 0.94] as const;
+
+const baseTransition: Transition = {
+  duration: 0.6,
+  ease: EASE_SMOOTH,
+};
 
 export const fadeIn: Variants = {
   hidden: {
@@ -8,17 +16,14 @@ export const fadeIn: Variants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.6,
-      ease: [0.25, 0.46, 0.45, 0.94],
-    },
+    transition: baseTransition,
   },
   exit: {
     opacity: 0,
     y: -20,
     transition: {
       duration: 0.4,
-      ease: [0.25, 0.46, 0.45, 0.94],
+      ease: EASE_SMOOTH,
     },
   },
 };
@@ -33,7 +38,7 @@ export const fadeInUp: Variants = {
     y: 0,
     transition: {
       duration: 0.8,
-      ease: [0.25, 0.46, 0.45, 0.94],
+      ease: EASE_SMOOTH,
     },
   },
 };
@@ -46,10 +51,7 @@ export const fadeInScale: Variants = {
   visible: {
     opacity: 1,
     scale: 1,
-    transition: {
-      duration: 0.6,
-      ease: [0.25, 0.46, 0.45, 0.94],
-    },
+    transition: baseTransition,
   },
 };
 
@@ -74,7 +76,7 @@ export const staggerItem: Variants = {
     y: 0,
     transition: {
       duration: 0.5,
-      ease: [0.25, 0.46, 0.45, 0.94],
+      ease: EASE_SMOOTH,
     },
   },
 };
@@ -84,34 +86,34 @@ export const imageHover = {
     scale: 1,
     transition: {
       duration: 0.4,
-      ease: [0.25, 0.46, 0.45, 0.94] as const,
+      ease: EASE_SMOOTH,
     },
   },
   hover: {
     scale: 1.05,
     transition: {
       duration: 0.4,
-      ease: [0.25, 0.46, 0.45, 0.94] as const,
+      ease: EASE_SMOOTH,
     },
   },
-};
+} as const;
 
 export const overlayHover = {
   rest: {
     opacity: 0,
     transition: {
       duration: 0.3,
-      ease: 'easeInOut' as const,
+      ease: 'easeInOut',
     },
   },
   hover: {
     opacity: 1,
     transition: {
       duration: 0.3,
-      ease: 'easeInOut' as const,
+      ease: 'easeInOut',
     },
   },
-};
+} as const;
 
 export const navSlide: Variants = {
   hidden: {
@@ -123,7 +125,7 @@ export const navSlide: Variants = {
     opacity: 1,
     transition: {
       duration: 0.4,
-      ease: [0.25, 0.46, 0.45, 0.94],
+      ease: EASE_SMOOTH,
     },
   },
   exit: {
@@ -131,7 +133,7 @@ export const navSlide: Variants = {
     opacity: 0,
     transition: {
       duration: 0.3,
-      ease: [0.25, 0.46, 0.45, 0.94],
+      ease: EASE_SMOOTH,
     },
   },
 };

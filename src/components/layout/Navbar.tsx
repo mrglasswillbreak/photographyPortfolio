@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import ThemeToggle from '../ui/ThemeToggle';
 import { navLinks } from '../../data';
 import { navSlide } from '../../utils/animations';
 
-export default function Navbar() {
+function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -13,7 +13,7 @@ export default function Navbar() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -27,6 +27,14 @@ export default function Navbar() {
       document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
+
+  const handleToggle = useCallback(() => {
+    setIsOpen((prev) => !prev);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
+  }, []);
 
   return (
     <motion.nav
@@ -73,9 +81,11 @@ export default function Navbar() {
           <div className="md:hidden flex items-center gap-4">
             <ThemeToggle />
             <motion.button
-              onClick={() => setIsOpen(!isOpen)}
+              onClick={handleToggle}
               className="p-2 text-neutral-900 dark:text-white"
               whileTap={{ scale: 0.95 }}
+              aria-label={isOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={isOpen}
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </motion.button>
@@ -98,7 +108,7 @@ export default function Navbar() {
                 <motion.a
                   key={link.name}
                   href={link.href}
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleClose}
                   className="text-2xl font-light text-neutral-900 dark:text-white"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -114,3 +124,5 @@ export default function Navbar() {
     </motion.nav>
   );
 }
+
+export default memo(Navbar);
