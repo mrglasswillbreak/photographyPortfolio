@@ -2,7 +2,7 @@ import { useState, useCallback, memo } from 'react';
 import type { FormEvent, ChangeEvent } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Mail, Phone, MapPin } from 'lucide-react';
-import { fadeIn, staggerContainer, staggerItem } from '../../utils/animations';
+import { fadeIn, fadeInLeft, fadeInRight, cardFadeIn } from '../../utils/animations';
 
 const contactInfo = [
   { icon: Mail, label: 'Email', value: 'hello@lenscraft.com' },
@@ -38,14 +38,14 @@ function Contact() {
   }, []);
 
   return (
-    <section id="contact" className="py-20 md:py-32 bg-white dark:bg-neutral-950">
+    <section id="contact" className="py-20 md:py-32 bg-white dark:bg-neutral-950 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
           variants={fadeIn}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: '-100px' }}
+          viewport={{ once: true, amount: 0.3 }}
           className="text-center mb-16"
         >
           <span className="text-sm tracking-[0.3em] text-neutral-500 dark:text-neutral-400 uppercase">
@@ -63,16 +63,21 @@ function Contact() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Contact Info */}
           <motion.div
-            variants={staggerContainer}
+            variants={fadeInLeft}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
+            viewport={{ once: true, amount: 0.3 }}
             className="space-y-8"
           >
-            {contactInfo.map((info) => (
+            {contactInfo.map((info, index) => (
               <motion.div
                 key={info.label}
-                variants={staggerItem}
+                variants={cardFadeIn}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.5 }}
+                transition={{ delay: index * 0.15 }}
+                whileHover={{ x: 10, scale: 1.02 }}
                 className="flex items-start gap-4"
               >
                 <div className="w-12 h-12 flex items-center justify-center bg-neutral-100 dark:bg-neutral-900 rounded-full">
@@ -90,15 +95,20 @@ function Contact() {
 
           {/* Contact Form */}
           <motion.form
-            variants={fadeIn}
+            variants={fadeInRight}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
+            viewport={{ once: true, amount: 0.2 }}
             onSubmit={handleSubmit}
             className="lg:col-span-2 space-y-6"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+              >
                 <label
                   htmlFor="name"
                   className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
@@ -120,8 +130,13 @@ function Contact() {
                              transition-all duration-300"
                   placeholder="Your name"
                 />
-              </div>
-              <div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+              >
                 <label
                   htmlFor="email"
                   className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
@@ -143,10 +158,15 @@ function Contact() {
                              transition-all duration-300"
                   placeholder="your@email.com"
                 />
-              </div>
+              </motion.div>
             </div>
 
-            <div>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+            >
               <label
                 htmlFor="subject"
                 className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
@@ -168,9 +188,14 @@ function Contact() {
                            transition-all duration-300"
                 placeholder="What's this about?"
               />
-            </div>
+            </motion.div>
 
-            <div>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4 }}
+            >
               <label
                 htmlFor="message"
                 className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
@@ -192,11 +217,15 @@ function Contact() {
                            transition-all duration-300 resize-none"
                 placeholder="Tell me about your project..."
               />
-            </div>
+            </motion.div>
 
             <motion.button
               type="submit"
               disabled={isSubmitting}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.5 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="w-full sm:w-auto px-8 py-4 bg-neutral-900 dark:bg-white 
