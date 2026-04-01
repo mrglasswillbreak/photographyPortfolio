@@ -12,19 +12,12 @@ export const fadeIn: Variants = {
   hidden: {
     opacity: 0,
     y: 20,
+    transition: { duration: 0.4, ease: EASE_SMOOTH },
   },
   visible: {
     opacity: 1,
     y: 0,
     transition: baseTransition,
-  },
-  exit: {
-    opacity: 0,
-    y: -20,
-    transition: {
-      duration: 0.4,
-      ease: EASE_SMOOTH,
-    },
   },
 };
 
@@ -32,6 +25,7 @@ export const fadeInUp: Variants = {
   hidden: {
     opacity: 0,
     y: 40,
+    transition: { duration: 0.5, ease: EASE_SMOOTH },
   },
   visible: {
     opacity: 1,
@@ -47,6 +41,7 @@ export const fadeInLeft: Variants = {
   hidden: {
     opacity: 0,
     x: -50,
+    transition: { duration: 0.5, ease: EASE_SMOOTH },
   },
   visible: {
     opacity: 1,
@@ -62,6 +57,7 @@ export const fadeInRight: Variants = {
   hidden: {
     opacity: 0,
     x: 50,
+    transition: { duration: 0.5, ease: EASE_SMOOTH },
   },
   visible: {
     opacity: 1,
@@ -77,6 +73,7 @@ export const fadeInScale: Variants = {
   hidden: {
     opacity: 0,
     scale: 0.9,
+    transition: { duration: 0.4, ease: EASE_SMOOTH },
   },
   visible: {
     opacity: 1,
@@ -89,7 +86,10 @@ export const fadeInScale: Variants = {
 };
 
 export const staggerContainer: Variants = {
-  hidden: { opacity: 0 },
+  hidden: { 
+    opacity: 0,
+    transition: { duration: 0.3 },
+  },
   visible: {
     opacity: 1,
     transition: {
@@ -104,6 +104,7 @@ export const staggerItem: Variants = {
     opacity: 0,
     y: 40,
     scale: 0.95,
+    transition: { duration: 0.4, ease: EASE_SMOOTH },
   },
   visible: {
     opacity: 1,
@@ -121,6 +122,7 @@ export const cardFadeIn: Variants = {
     opacity: 0,
     y: 60,
     scale: 0.9,
+    transition: { duration: 0.5, ease: EASE_SMOOTH },
   },
   visible: {
     opacity: 1,
@@ -138,6 +140,7 @@ export const imageFadeIn: Variants = {
     opacity: 0,
     scale: 0.85,
     y: 30,
+    transition: { duration: 0.5, ease: EASE_SMOOTH },
   },
   visible: {
     opacity: 1,

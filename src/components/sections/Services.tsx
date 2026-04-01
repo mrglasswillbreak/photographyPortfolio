@@ -23,7 +23,7 @@ function Services() {
           variants={fadeIn}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ amount: 0.3 }}
           className="text-center mb-16"
         >
           <span className="text-sm tracking-[0.3em] text-neutral-500 dark:text-neutral-400 uppercase">
@@ -47,7 +47,7 @@ function Services() {
                 variants={cardFadeIn}
                 initial="hidden"
                 whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
+                viewport={{ amount: 0.3 }}
                 transition={{ delay: index * 0.15 }}
                 whileHover={{ y: -10, scale: 1.02 }}
                 className="group p-8 bg-neutral-50 dark:bg-neutral-900 rounded-sm 

@@ -45,7 +45,7 @@ function Contact() {
           variants={fadeIn}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          viewport={{ amount: 0.3 }}
           className="text-center mb-16"
         >
           <span className="text-sm tracking-[0.3em] text-neutral-500 dark:text-neutral-400 uppercase">
@@ -66,7 +66,7 @@ function Contact() {
             variants={fadeInLeft}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
+            viewport={{ amount: 0.3 }}
             className="space-y-8"
           >
             {contactInfo.map((info, index) => (
@@ -75,7 +75,7 @@ function Contact() {
                 variants={cardFadeIn}
                 initial="hidden"
                 whileInView="visible"
-                viewport={{ once: true, amount: 0.5 }}
+                viewport={{ amount: 0.5 }}
                 transition={{ delay: index * 0.15 }}
                 whileHover={{ x: 10, scale: 1.02 }}
                 className="flex items-start gap-4"
@@ -98,7 +98,7 @@ function Contact() {
             variants={fadeInRight}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
+            viewport={{ amount: 0.2 }}
             onSubmit={handleSubmit}
             className="lg:col-span-2 space-y-6"
           >
@@ -106,7 +106,7 @@ function Contact() {
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                viewport={{ amount: 0.5 }}
                 transition={{ delay: 0.1 }}
               >
                 <label
@@ -134,7 +134,7 @@ function Contact() {
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                viewport={{ amount: 0.5 }}
                 transition={{ delay: 0.2 }}
               >
                 <label
@@ -164,7 +164,7 @@ function Contact() {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ amount: 0.5 }}
               transition={{ delay: 0.3 }}
             >
               <label
@@ -193,7 +193,7 @@ function Contact() {
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ amount: 0.5 }}
               transition={{ delay: 0.4 }}
             >
               <label
@@ -224,7 +224,7 @@ function Contact() {
               disabled={isSubmitting}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ amount: 0.5 }}
               transition={{ delay: 0.5 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

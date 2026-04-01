@@ -20,7 +20,7 @@ function About() {
             variants={imageFadeIn}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
+            viewport={{ amount: 0.3 }}
             className="relative"
           >
             <motion.div 
@@ -28,7 +28,7 @@ function About() {
               variants={fadeInLeft}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
+              viewport={{ amount: 0.3 }}
             >
               <motion.img
                 whileHover={{ scale: 1.05 }}
@@ -48,7 +48,7 @@ function About() {
               aria-hidden="true"
               initial={{ opacity: 0, x: 20, y: 20 }}
               whileInView={{ opacity: 1, x: 0, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ amount: 0.3 }}
               transition={{ delay: 0.4, duration: 0.6 }}
             />
           </motion.div>
@@ -58,14 +58,14 @@ function About() {
             variants={fadeInRight}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
+            viewport={{ amount: 0.3 }}
             className="lg:pl-8"
           >
             <motion.span 
               className="text-sm tracking-[0.3em] text-neutral-500 dark:text-neutral-400 uppercase block"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ amount: 0.5 }}
               transition={{ delay: 0.1 }}
             >
               About Me
@@ -74,7 +74,7 @@ function About() {
               className="mt-4 text-3xl md:text-4xl lg:text-5xl font-light text-neutral-900 dark:text-white"
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ amount: 0.5 }}
               transition={{ delay: 0.2 }}
             >
               The Story <span className="italic font-semibold">Behind the Lens</span>
@@ -90,7 +90,7 @@ function About() {
                   className="leading-relaxed"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
+                  viewport={{ amount: 0.5 }}
                   transition={{ delay: 0.3 + index * 0.1 }}
                 >
                   {text}
@@ -106,7 +106,7 @@ function About() {
                   variants={cardFadeIn}
                   initial="hidden"
                   whileInView="visible"
-                  viewport={{ once: true, amount: 0.5 }}
+                  viewport={{ amount: 0.5 }}
                   transition={{ delay: 0.5 + index * 0.15 }}
                 >
                   <div className="text-3xl md:text-4xl font-light text-neutral-900 dark:text-white">
