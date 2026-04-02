@@ -5,7 +5,8 @@ import { jwtVerify } from 'jose';
 const COOKIE_NAME = 'admin_session';
 
 function getSecret(): Uint8Array {
-  const secret = process.env.JWT_SECRET ?? '';
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET env var is not set');
   return new TextEncoder().encode(secret);
 }
 

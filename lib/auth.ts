@@ -1,8 +1,8 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
-const COOKIE_NAME = 'admin_session';
-const SESSION_DURATION = 60 * 60 * 24; // 24 hours in seconds
+export const COOKIE_NAME = 'admin_session';
+export const SESSION_DURATION = 60 * 60 * 24; // 24 hours in seconds
 
 function getSecret(): Uint8Array {
   const secret = process.env.JWT_SECRET;
@@ -46,5 +46,3 @@ export function checkCredentials(username: string, password: string): boolean {
   return username === validUsername && password === validPassword;
 }
 
-export const COOKIE_NAME_EXPORT = COOKIE_NAME;
-export const SESSION_DURATION_EXPORT = SESSION_DURATION;
