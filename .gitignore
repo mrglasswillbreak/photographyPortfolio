@@ -33,3 +33,6 @@ dist-ssr
 .next
 out
 next-env.d.ts
+
+# TypeScript incremental build artifacts
+*.tsbuildinfo
