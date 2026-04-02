@@ -1,37 +1,33 @@
 {
   "name": "photographyportfolio",
-  "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "private": true,
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
-    "@sanity/client": "^7.20.0",
-    "@sanity/image-url": "^2.1.1",
+    "@vercel/blob": "^2.3.3",
+    "@vercel/postgres": "^0.10.0",
     "framer-motion": "^12.38.0",
+    "jose": "^6.2.2",
     "lucide-react": "^1.7.0",
+    "next": "^16.2.2",
+    "next-themes": "^0.4.6",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "resend": "^6.10.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
-    "@tailwindcss/vite": "^4.2.2",
+    "@tailwindcss/postcss": "^4.2.2",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^9.39.4",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.5.2",
-    "globals": "^17.4.0",
+    "eslint-config-next": "^16.2.2",
     "tailwindcss": "^4.2.2",
-    "typescript": "~5.9.3",
-    "typescript-eslint": "^8.57.0",
-    "vercel": "^50.38.2",
-    "vite": "^8.0.1"
+    "typescript": "~5.9.3"
   }
 }

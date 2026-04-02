@@ -29,5 +29,7 @@ dist-ssr
 *.sw?
 .vercel
 
-# Sanity
-studio/dist
+# Next.js
+.next
+out
+next-env.d.ts
