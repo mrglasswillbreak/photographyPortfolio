@@ -1,19 +1,30 @@
-import { memo, useMemo } from 'react';
+import { memo } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, User, Mountain, Camera } from 'lucide-react';
+import { Heart, User, Mountain, Camera, Image, Video, Star, Award, Calendar, Users } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { services } from '../../data';
 import { fadeIn, cardFadeIn } from '../../utils/animations';
+import { useServices } from '../../hooks/useSanity';
+import { ServicesSkeleton } from '../ui/Skeleton';
 
 const iconMap: Record<string, LucideIcon> = {
   Heart,
   User,
   Mountain,
   Camera,
+  Image,
+  Video,
+  Star,
+  Award,
+  Calendar,
+  Users,
 };
 
 function Services() {
-  const serviceItems = useMemo(() => services, []);
+  const { data: services, isLoading } = useServices();
+
+  if (isLoading) {
+    return <ServicesSkeleton />;
+  }
 
   return (
     <section id="services" className="py-20 md:py-32 bg-white dark:bg-neutral-950">
@@ -39,11 +50,11 @@ function Services() {
 
         {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {serviceItems.map((service, index) => {
-            const Icon = iconMap[service.icon];
+          {services.map((service, index) => {
+            const Icon = iconMap[service.icon] || Camera;
             return (
               <motion.article
-                key={service.id}
+                key={service._id}
                 variants={cardFadeIn}
                 initial="hidden"
                 whileInView="visible"

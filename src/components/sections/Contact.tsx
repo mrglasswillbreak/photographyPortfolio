@@ -1,14 +1,11 @@
-import { useState, useCallback, memo } from 'react';
+import { useState, useCallback, memo, useMemo } from 'react';
 import type { FormEvent, ChangeEvent } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Mail, Phone, MapPin } from 'lucide-react';
 import { fadeIn, fadeInLeft, fadeInRight, cardFadeIn } from '../../utils/animations';
-
-const contactInfo = [
-  { icon: Mail, label: 'Email', value: 'hello@lenscraft.com' },
-  { icon: Phone, label: 'Phone', value: '+1 (555) 123-4567' },
-  { icon: MapPin, label: 'Location', value: 'New York, NY' },
-] as const;
+import { useContactContent } from '../../hooks/useSanity';
+import { fallbackContact } from '../../data/fallback';
+import { ContactSkeleton } from '../ui/Skeleton';
 
 const initialFormData = {
   name: '',
@@ -18,9 +15,29 @@ const initialFormData = {
 };
 
 function Contact() {
+  const { data: content, isLoading } = useContactContent();
   const [formData, setFormData] = useState(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  // Build contact info from CMS or fallback
+  const contactInfo = useMemo(() => [
+    { 
+      icon: Mail, 
+      label: 'Email', 
+      value: content?.email || fallbackContact.email || '' 
+    },
+    { 
+      icon: Phone, 
+      label: 'Phone', 
+      value: content?.phone || fallbackContact.phone || '' 
+    },
+    { 
+      icon: MapPin, 
+      label: 'Location', 
+      value: content?.location || fallbackContact.location || '' 
+    },
+  ], [content]);
 
   const handleChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -37,6 +54,10 @@ function Contact() {
     setTimeout(() => setSubmitted(false), 3000);
   }, []);
 
+  if (isLoading) {
+    return <ContactSkeleton />;
+  }
+
   return (
     <section id="contact" className="py-20 md:py-32 bg-white dark:bg-neutral-950 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -52,11 +73,19 @@ function Contact() {
             Get in Touch
           </span>
           <h2 className="mt-4 text-3xl md:text-4xl lg:text-5xl font-light text-neutral-900 dark:text-white">
-            Let's <span className="italic font-semibold">Connect</span>
+            {content?.sectionTitle ? (
+              <>
+                {content.sectionTitle.split(' ').slice(0, -1).join(' ')}{' '}
+                <span className="italic font-semibold">
+                  {content.sectionTitle.split(' ').slice(-1)}
+                </span>
+              </>
+            ) : (
+              <>Let's <span className="italic font-semibold">Connect</span></>
+            )}
           </h2>
           <p className="mt-4 text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
-            Have a project in mind? I'd love to hear from you. Let's create something
-            beautiful together.
+            {content?.sectionSubtitle || fallbackContact.sectionSubtitle}
           </p>
         </motion.div>
 

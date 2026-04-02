@@ -1,16 +1,42 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { fadeInLeft, fadeInRight, cardFadeIn, imageFadeIn } from '../../utils/animations';
-
-const ABOUT_IMAGE_URL = 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=800&q=80';
-
-const stats = [
-  { number: '10+', label: 'Years Experience' },
-  { number: '500+', label: 'Projects Completed' },
-  { number: '50+', label: 'Awards Won' },
-] as const;
+import { useAboutContent } from '../../hooks/useSanity';
+import { getImageUrl } from '../../lib/sanity';
+import { fallbackImageUrls, fallbackAbout } from '../../data/fallback';
+import { AboutSkeleton } from '../ui/Skeleton';
 
 function About() {
+  const { data: content, isLoading } = useAboutContent();
+
+  // Get profile image URL from CMS or fallback
+  const profileImageUrl = useMemo(() => {
+    if (content?.profileImage?.asset?._ref) {
+      return getImageUrl(content.profileImage, { width: 800, quality: 80 });
+    }
+    return fallbackImageUrls.about;
+  }, [content?.profileImage]);
+
+  // Get bio paragraphs from CMS or fallback
+  const bioParagraphs = useMemo(() => {
+    if (content?.bioSimple && content.bioSimple.length > 0) {
+      return content.bioSimple;
+    }
+    return fallbackAbout.bioSimple || [];
+  }, [content?.bioSimple]);
+
+  // Get stats from CMS or fallback
+  const stats = useMemo(() => {
+    if (content?.stats && content.stats.length > 0) {
+      return content.stats;
+    }
+    return fallbackAbout.stats || [];
+  }, [content?.stats]);
+
+  if (isLoading) {
+    return <AboutSkeleton />;
+  }
+
   return (
     <section id="about" className="py-20 md:py-32 bg-neutral-50 dark:bg-neutral-900 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,7 +59,7 @@ function About() {
               <motion.img
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.6 }}
-                src={ABOUT_IMAGE_URL}
+                src={profileImageUrl}
                 alt="Photographer portrait"
                 width={800}
                 height={1000}
@@ -77,14 +103,19 @@ function About() {
               viewport={{ amount: 0.5 }}
               transition={{ delay: 0.2 }}
             >
-              The Story <span className="italic font-semibold">Behind the Lens</span>
+              {content?.sectionTitle ? (
+                <>
+                  {content.sectionTitle.split(' ').slice(0, 2).join(' ')}{' '}
+                  <span className="italic font-semibold">
+                    {content.sectionTitle.split(' ').slice(2).join(' ')}
+                  </span>
+                </>
+              ) : (
+                <>The Story <span className="italic font-semibold">Behind the Lens</span></>
+              )}
             </motion.h2>
             <div className="mt-8 space-y-6 text-neutral-600 dark:text-neutral-400">
-              {[
-                "With over a decade of experience in photography, I've dedicated my life to capturing the extraordinary in the ordinary. My journey began with a simple film camera and has evolved into a passion for visual storytelling.",
-                "I believe every photograph tells a story – a moment frozen in time, waiting to be remembered. Whether it's the tender glance between newlyweds or the majestic beauty of a mountain sunrise, I strive to capture the emotion and essence of every scene.",
-                "My work has been featured in numerous publications and exhibitions worldwide. But my greatest reward is seeing the joy on my clients' faces when they relive their precious moments through my images."
-              ].map((text, index) => (
+              {bioParagraphs.map((text, index) => (
                 <motion.p 
                   key={index}
                   className="leading-relaxed"
