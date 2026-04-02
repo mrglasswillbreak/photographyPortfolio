@@ -19,15 +19,19 @@ function Gallery() {
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null);
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/gallery').then((r) => r.json()),
-      fetch('/api/content').then((r) => r.json()),
-    ])
+    const fetchJson = async (input: RequestInfo) => {
+      const r = await fetch(input);
+      if (!r.ok) throw new Error(`Request failed with status ${r.status}`);
+      return r.json();
+    };
+
+    Promise.all([fetchJson('/api/gallery'), fetchJson('/api/content')])
       .then(([imgs, content]) => {
-        setImages(imgs);
+        if (Array.isArray(imgs)) setImages(imgs as GalleryImage[]);
+        const c = content && typeof content === 'object' ? (content as Record<string, string>) : {};
         setHeader({
-          title: content.gallery_title || 'Selected Works',
-          subtitle: content.gallery_subtitle || 'A curated collection of my finest photographs, showcasing the beauty in every frame',
+          title: c.gallery_title || 'Selected Works',
+          subtitle: c.gallery_subtitle || 'A curated collection of my finest photographs, showcasing the beauty in every frame',
         });
       })
       .catch(() => {})
