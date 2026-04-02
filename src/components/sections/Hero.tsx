@@ -1,13 +1,27 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { fadeIn, fadeInUp } from '../../utils/animations';
-
-const HERO_BG_STYLE = {
-  backgroundImage: 'url(https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1920&q=80)',
-} as const;
+import { useHomepageContent } from '../../hooks/useSanity';
+import { getImageUrl } from '../../lib/sanity';
+import { fallbackImageUrls } from '../../data/fallback';
+import { HeroSkeleton } from '../ui/Skeleton';
 
 function Hero() {
+  const { data: content, isLoading } = useHomepageContent();
+
+  // Build hero background style with CMS image or fallback
+  const heroBgStyle = useMemo(() => {
+    const imageUrl = content?.heroImage 
+      ? getImageUrl(content.heroImage, { width: 1920, quality: 80 })
+      : fallbackImageUrls.hero;
+    return { backgroundImage: `url(${imageUrl})` };
+  }, [content?.heroImage]);
+
+  if (isLoading) {
+    return <HeroSkeleton />;
+  }
+
   return (
     <section
       id="home"
@@ -22,7 +36,7 @@ function Hero() {
       >
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={HERO_BG_STYLE}
+          style={heroBgStyle}
         />
         <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
       </motion.div>
@@ -35,7 +49,7 @@ function Hero() {
           animate="visible"
           className="inline-block text-sm md:text-base tracking-[0.3em] text-white/80 mb-6 uppercase"
         >
-          Professional Photography
+          {content?.tagline || 'Professional Photography'}
         </motion.span>
 
         <motion.h1
@@ -45,9 +59,11 @@ function Hero() {
           transition={{ delay: 0.2 }}
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-white mb-6 leading-tight"
         >
-          Capturing Life's
+          {content?.heroTitle || "Capturing Life's"}
           <br />
-          <span className="font-semibold italic">Beautiful Moments</span>
+          <span className="font-semibold italic">
+            {content?.heroTitleHighlight || 'Beautiful Moments'}
+          </span>
         </motion.h1>
 
         <motion.p
@@ -57,8 +73,8 @@ function Hero() {
           transition={{ delay: 0.4 }}
           className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl mx-auto font-light"
         >
-          Transforming fleeting moments into timeless memories through the art of
-          photography
+          {content?.heroSubtitle || 
+            'Transforming fleeting moments into timeless memories through the art of photography'}
         </motion.p>
 
         <motion.div
@@ -76,7 +92,7 @@ function Hero() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            View Gallery
+            {content?.primaryButtonText || 'View Gallery'}
           </motion.a>
           <motion.a
             href="#contact"
@@ -86,7 +102,7 @@ function Hero() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            Get in Touch
+            {content?.secondaryButtonText || 'Get in Touch'}
           </motion.a>
         </motion.div>
       </div>

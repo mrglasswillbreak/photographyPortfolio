@@ -1,7 +1,10 @@
 import { memo, useMemo, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { galleryImages } from '../../data';
+import { useGalleryImages, useHomepageContent } from '../../hooks/useSanity';
+import { getImageUrl } from '../../lib/sanity';
+import { fallbackImageUrls } from '../../data/fallback';
 import { fadeIn, staggerContainer, imageFadeIn, imageHover, overlayHover } from '../../utils/animations';
+import { GallerySkeleton } from '../ui/Skeleton';
 import ImageLightbox from '../ui/ImageLightbox';
 
 const getImageHeight = (index: number) => {
@@ -15,8 +18,23 @@ interface SelectedImage {
 }
 
 function Gallery() {
-  const images = useMemo(() => galleryImages, []);
+  const { data: images, isLoading: imagesLoading } = useGalleryImages();
+  const { data: homepage } = useHomepageContent();
   const [selectedImage, setSelectedImage] = useState<SelectedImage | null>(null);
+
+  // Process images to get URLs (from CMS or fallback)
+  const processedImages = useMemo(() => {
+    return images.map((image) => {
+      const imageUrl = image.image?.asset?._ref
+        ? getImageUrl(image.image, { width: 800, quality: 80 })
+        : fallbackImageUrls[image._id] || '';
+      
+      return {
+        ...image,
+        src: imageUrl,
+      };
+    });
+  }, [images]);
 
   const openLightbox = useCallback((image: SelectedImage) => {
     setSelectedImage(image);
@@ -25,6 +43,10 @@ function Gallery() {
   const closeLightbox = useCallback(() => {
     setSelectedImage(null);
   }, []);
+
+  if (imagesLoading) {
+    return <GallerySkeleton />;
+  }
 
   return (
     <section id="gallery" className="py-20 md:py-32 bg-neutral-50 dark:bg-neutral-900">
@@ -41,11 +63,20 @@ function Gallery() {
             Portfolio
           </span>
           <h2 className="mt-4 text-3xl md:text-4xl lg:text-5xl font-light text-neutral-900 dark:text-white">
-            Selected <span className="italic font-semibold">Works</span>
+            {homepage?.galleryTitle ? (
+              <>
+                {homepage.galleryTitle.split(' ').slice(0, -1).join(' ')}{' '}
+                <span className="italic font-semibold">
+                  {homepage.galleryTitle.split(' ').slice(-1)}
+                </span>
+              </>
+            ) : (
+              <>Selected <span className="italic font-semibold">Works</span></>
+            )}
           </h2>
           <p className="mt-4 text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">
-            A curated collection of my finest photographs, showcasing the beauty in
-            every frame
+            {homepage?.gallerySubtitle || 
+              'A curated collection of my finest photographs, showcasing the beauty in every frame'}
           </p>
         </motion.div>
 
@@ -57,9 +88,9 @@ function Gallery() {
           viewport={{ amount: 0.1 }}
           className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4"
         >
-          {images.map((image, index) => (
+          {processedImages.map((image, index) => (
             <motion.div
-              key={image.id}
+              key={image._id}
               variants={imageFadeIn}
               initial="hidden"
               whileInView="visible"
