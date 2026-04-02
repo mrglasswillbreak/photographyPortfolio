@@ -24,10 +24,14 @@ export default function ServicesPage() {
   const loadServices = useCallback(async () => {
     try {
       const res = await fetch('/api/services');
+      if (!res.ok) throw new Error(`Failed to load services: ${res.status}`);
       const data = await res.json();
+      if (!Array.isArray(data)) throw new Error('Invalid services data');
       setServices(data);
+      setError('');
     } catch {
       setError('Failed to load services');
+      setServices([]);
     } finally {
       setIsLoading(false);
     }

@@ -15,8 +15,11 @@ function Services() {
 
   useEffect(() => {
     fetch('/api/services')
-      .then((r) => r.json())
-      .then(setServices)
+      .then((r) => {
+        if (!r.ok) throw new Error(`Request failed with status ${r.status}`);
+        return r.json();
+      })
+      .then((data) => { if (Array.isArray(data)) setServices(data); })
       .catch(() => {})
       .finally(() => setIsLoading(false));
   }, []);
