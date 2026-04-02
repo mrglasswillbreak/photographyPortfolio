@@ -19,7 +19,15 @@ export async function POST(request: Request) {
 
     const resendKey = process.env.RESEND_API_KEY;
     const contactEmail = process.env.CONTACT_EMAIL;
-    const fromEmail = process.env.FROM_EMAIL || 'Portfolio Contact <onboarding@resend.dev>';
+    const configuredFromEmail = process.env.FROM_EMAIL;
+    const fallbackFromEmail = 'Portfolio Contact <onboarding@resend.dev>';
+    const fromEmail = configuredFromEmail || fallbackFromEmail;
+
+    if (!configuredFromEmail) {
+      console.warn(
+        'Email misconfiguration: FROM_EMAIL not set, using fallback sender "Portfolio Contact <onboarding@resend.dev>"'
+      );
+    }
 
     if (!resendKey || !contactEmail) {
       // If email not configured, still return success (graceful degradation)
