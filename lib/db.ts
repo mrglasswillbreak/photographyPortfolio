@@ -26,8 +26,9 @@ export async function sql<T extends Record<string, unknown> = Record<string, unk
   ...values: SqlPrimitive[]
 ): Promise<SqlResult<T>> {
   const neonSql = getNeonSql();
+  const normalizedValues = values.map((v) => (v === undefined ? null : v));
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const rows = (await neonSql(strings, ...(values as any[]))) as T[];
+  const rows = (await neonSql(strings, ...(normalizedValues as any[]))) as T[];
   return { rows };
 }
 
