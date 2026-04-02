@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { checkCredentials, createSession, COOKIE_NAME_EXPORT, SESSION_DURATION_EXPORT } from '@/lib/auth';
+import { checkCredentials, createSession, COOKIE_NAME, SESSION_DURATION } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -16,11 +16,11 @@ export async function POST(request: Request) {
     const token = await createSession();
     const response = NextResponse.json({ success: true });
 
-    response.cookies.set(COOKIE_NAME_EXPORT, token, {
+    response.cookies.set(COOKIE_NAME, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: SESSION_DURATION_EXPORT,
+      maxAge: SESSION_DURATION,
       path: '/',
     });
 
