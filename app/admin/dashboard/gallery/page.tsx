@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, Trash2, Edit2, Check, X, Plus, Star, GripVertical, Loader2 } from 'lucide-react';
+import { Upload, Trash2, Edit2, Check, X, Plus, Star, Loader2 } from 'lucide-react';
 import type { GalleryImage } from '@/lib/types';
 
 const CATEGORIES = ['Landscape', 'Wedding', 'Portrait', 'Nature', 'Commercial', 'Event', 'Other'];
@@ -20,10 +20,12 @@ export default function GalleryManagerPage() {
   const loadImages = useCallback(async () => {
     try {
       const res = await fetch('/api/gallery');
+      if (!res.ok) throw new Error('Failed to load gallery');
       const data = await res.json();
+      if (!Array.isArray(data)) throw new Error('Invalid gallery data');
       setImages(data);
-    } catch {
-      setError('Failed to load gallery');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load gallery');
     } finally {
       setIsLoading(false);
     }

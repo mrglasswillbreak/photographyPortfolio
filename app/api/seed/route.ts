@@ -98,8 +98,11 @@ export async function POST(request: Request) {
   }
 }
 
-// Also expose GET for initial DB setup (no auth required for table creation only)
 export async function GET() {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     await initializeDatabase();
     return NextResponse.json({ success: true, message: 'Database initialized' });
