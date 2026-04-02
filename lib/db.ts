@@ -1,6 +1,36 @@
-import { sql } from '@vercel/postgres';
+import { neon } from '@neondatabase/serverless';
 
-export { sql };
+type SqlPrimitive = string | number | boolean | null | undefined;
+type SqlResult<T extends Record<string, unknown>> = { rows: T[] };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type NeonSql = (strings: TemplateStringsArray, ...values: any[]) => Promise<Record<string, unknown>[]>;
+
+let _neonSql: NeonSql | null = null;
+
+function getNeonSql(): NeonSql {
+  if (!_neonSql) {
+    const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+    if (!connectionString) {
+      throw new Error(
+        'Database connection string not found. Set DATABASE_URL or POSTGRES_URL environment variable.',
+      );
+    }
+    _neonSql = neon(connectionString) as unknown as NeonSql;
+  }
+  return _neonSql;
+}
+
+export async function sql<T extends Record<string, unknown> = Record<string, unknown>>(
+  strings: TemplateStringsArray,
+  ...values: SqlPrimitive[]
+): Promise<SqlResult<T>> {
+  const neonSql = getNeonSql();
+  const normalizedValues = values.map((v) => (v === undefined ? null : v));
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const rows = (await neonSql(strings, ...(normalizedValues as any[]))) as T[];
+  return { rows };
+}
 
 export async function initializeDatabase() {
   await sql`
@@ -41,7 +71,7 @@ export async function initializeDatabase() {
 }
 
 export async function getContent(section: string, key: string, defaultValue = ''): Promise<string> {
-  const result = await sql`
+  const result = await sql<{ value: string }>`
     SELECT value FROM site_content WHERE section = ${section} AND key = ${key} LIMIT 1
   `;
   return result.rows[0]?.value ?? defaultValue;
@@ -57,7 +87,7 @@ export async function upsertContent(section: string, key: string, value: string)
 }
 
 export async function getAllContent(): Promise<Record<string, string>> {
-  const result = await sql`SELECT section, key, value FROM site_content`;
+  const result = await sql<{ section: string; key: string; value: string }>`SELECT section, key, value FROM site_content`;
   const map: Record<string, string> = {};
   for (const row of result.rows) {
     map[`${row.section}_${row.key}`] = row.value;

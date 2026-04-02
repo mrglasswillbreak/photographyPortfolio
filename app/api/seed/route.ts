@@ -52,45 +52,48 @@ const INITIAL_SERVICES = [
   { title: 'Commercial Work', description: 'High-quality imagery for brands, products, and marketing campaigns.', icon: 'Camera', display_order: 4 },
 ];
 
+async function seedDatabase() {
+  await initializeDatabase();
+
+  // Seed content
+  for (const { section, key, value } of INITIAL_CONTENT) {
+    await sql`
+      INSERT INTO site_content (section, key, value)
+      VALUES (${section}, ${key}, ${value})
+      ON CONFLICT (section, key) DO NOTHING
+    `;
+  }
+
+  // Seed gallery (only if empty)
+  const galleryCount = await sql`SELECT COUNT(*) FROM gallery_images`;
+  if (Number(galleryCount.rows[0]?.count ?? 0) === 0) {
+    for (const img of INITIAL_GALLERY) {
+      await sql`
+        INSERT INTO gallery_images (title, alt, category, url, featured, display_order)
+        VALUES (${img.title}, ${img.alt}, ${img.category}, ${img.url}, ${img.featured}, ${img.display_order})
+      `;
+    }
+  }
+
+  // Seed services (only if empty)
+  const servicesCount = await sql`SELECT COUNT(*) FROM services`;
+  if (Number(servicesCount.rows[0]?.count ?? 0) === 0) {
+    for (const svc of INITIAL_SERVICES) {
+      await sql`
+        INSERT INTO services (title, description, icon, display_order)
+        VALUES (${svc.title}, ${svc.description}, ${svc.icon}, ${svc.display_order})
+      `;
+    }
+  }
+}
+
 export async function POST(request: Request) {
   if (!(await isAuthenticated())) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    await initializeDatabase();
-
-    // Seed content
-    for (const { section, key, value } of INITIAL_CONTENT) {
-      await sql`
-        INSERT INTO site_content (section, key, value)
-        VALUES (${section}, ${key}, ${value})
-        ON CONFLICT (section, key) DO NOTHING
-      `;
-    }
-
-    // Seed gallery (only if empty)
-    const galleryCount = await sql`SELECT COUNT(*) FROM gallery_images`;
-    if (Number(galleryCount.rows[0].count) === 0) {
-      for (const img of INITIAL_GALLERY) {
-        await sql`
-          INSERT INTO gallery_images (title, alt, category, url, featured, display_order)
-          VALUES (${img.title}, ${img.alt}, ${img.category}, ${img.url}, ${img.featured}, ${img.display_order})
-        `;
-      }
-    }
-
-    // Seed services (only if empty)
-    const servicesCount = await sql`SELECT COUNT(*) FROM services`;
-    if (Number(servicesCount.rows[0].count) === 0) {
-      for (const svc of INITIAL_SERVICES) {
-        await sql`
-          INSERT INTO services (title, description, icon, display_order)
-          VALUES (${svc.title}, ${svc.description}, ${svc.icon}, ${svc.display_order})
-        `;
-      }
-    }
-
+    await seedDatabase();
     return NextResponse.json({ success: true, message: 'Database seeded successfully' });
   } catch (error) {
     console.error('Seed error:', error);
@@ -104,8 +107,8 @@ export async function GET() {
   }
 
   try {
-    await initializeDatabase();
-    return NextResponse.json({ success: true, message: 'Database initialized' });
+    await seedDatabase();
+    return NextResponse.json({ success: true, message: 'Database initialized and seeded successfully' });
   } catch (error) {
     console.error('Init error:', error);
     return NextResponse.json({ error: 'Failed to initialize database' }, { status: 500 });
