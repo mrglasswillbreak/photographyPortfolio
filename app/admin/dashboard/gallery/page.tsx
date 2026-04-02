@@ -6,6 +6,33 @@ import type { GalleryImage } from '@/lib/types';
 
 const CATEGORIES = ['Landscape', 'Wedding', 'Portrait', 'Nature', 'Commercial', 'Event', 'Other'];
 
+interface ImageActionButtonsProps {
+  image: GalleryImage;
+  onEdit: (image: GalleryImage) => void;
+  onToggleFeatured: (image: GalleryImage) => void;
+  onDelete: (id: number) => void;
+  variant: 'overlay' | 'inline';
+}
+
+function ImageActionButtons({ image, onEdit, onToggleFeatured, onDelete, variant }: ImageActionButtonsProps) {
+  if (variant === 'overlay') {
+    return (
+      <>
+        <button onClick={() => onEdit(image)} className="p-2 bg-white rounded-lg text-neutral-900 hover:bg-neutral-100 transition-colors" aria-label="Edit image"><Edit2 className="w-4 h-4" /></button>
+        <button onClick={() => onToggleFeatured(image)} className={`p-2 rounded-lg transition-colors ${image.featured ? 'bg-amber-400 text-amber-900 hover:bg-amber-300' : 'bg-white text-neutral-900 hover:bg-neutral-100'}`} aria-label={image.featured ? 'Unfeature' : 'Feature'}><Star className="w-4 h-4" /></button>
+        <button onClick={() => onDelete(image.id)} className="p-2 bg-red-500 rounded-lg text-white hover:bg-red-600 transition-colors" aria-label="Delete image"><Trash2 className="w-4 h-4" /></button>
+      </>
+    );
+  }
+  return (
+    <>
+      <button onClick={() => onEdit(image)} className="inline-flex min-w-[44px] min-h-[44px] items-center justify-center bg-neutral-100 dark:bg-neutral-800 rounded text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors" aria-label="Edit image"><Edit2 className="w-3 h-3" /></button>
+      <button onClick={() => onToggleFeatured(image)} className={`inline-flex min-w-[44px] min-h-[44px] items-center justify-center rounded transition-colors ${image.featured ? 'bg-amber-400 text-amber-900 hover:bg-amber-300' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'}`} aria-label={image.featured ? 'Unfeature' : 'Feature'}><Star className="w-3 h-3" /></button>
+      <button onClick={() => onDelete(image.id)} className="inline-flex min-w-[44px] min-h-[44px] items-center justify-center bg-red-100 dark:bg-red-900/30 rounded text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors" aria-label="Delete image"><Trash2 className="w-3 h-3" /></button>
+    </>
+  );
+}
+
 export default function GalleryManagerPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -206,11 +233,9 @@ export default function GalleryManagerPage() {
                   </div>
                 )}
 
-                {/* Actions overlay */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <button onClick={() => startEdit(image)} className="p-2 bg-white rounded-lg text-neutral-900 hover:bg-neutral-100 transition-colors" aria-label="Edit image"><Edit2 className="w-4 h-4" /></button>
-                  <button onClick={() => toggleFeatured(image)} className={`p-2 rounded-lg transition-colors ${image.featured ? 'bg-amber-400 text-amber-900 hover:bg-amber-300' : 'bg-white text-neutral-900 hover:bg-neutral-100'}`} aria-label={image.featured ? 'Unfeature' : 'Feature'}><Star className="w-4 h-4" /></button>
-                  <button onClick={() => deleteImage(image.id)} className="p-2 bg-red-500 rounded-lg text-white hover:bg-red-600 transition-colors" aria-label="Delete image"><Trash2 className="w-4 h-4" /></button>
+                {/* Actions overlay — visible on hover (desktop) */}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity [@media(hover:none)]:hidden flex items-center justify-center gap-2">
+                  <ImageActionButtons image={image} onEdit={startEdit} onToggleFeatured={toggleFeatured} onDelete={deleteImage} variant="overlay" />
                 </div>
 
                 {/* Info */}
@@ -243,7 +268,13 @@ export default function GalleryManagerPage() {
                   ) : (
                     <>
                       <p className="text-xs font-medium text-neutral-900 dark:text-white truncate">{image.alt || image.title || 'Untitled'}</p>
-                      <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">{image.category}</p>
+                      <div className="flex items-center justify-between mt-0.5">
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">{image.category}</p>
+                        {/* Action buttons — always visible on touch devices, hidden on hover-capable devices (handled by overlay above) */}
+                        <div className="flex gap-1 [@media(hover:hover)]:hidden">
+                          <ImageActionButtons image={image} onEdit={startEdit} onToggleFeatured={toggleFeatured} onDelete={deleteImage} variant="inline" />
+                        </div>
+                      </div>
                     </>
                   )}
                 </div>
