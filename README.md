@@ -82,7 +82,7 @@ Copy `.env.example` to `.env.local` and set the following:
 | `ADMIN_USERNAME` | Admin login username |
 | `ADMIN_PASSWORD` | Admin login password |
 | `JWT_SECRET` | Secret used to sign session tokens (`openssl rand -base64 32`) |
-| `DATABASE_URL` | Neon / Vercel Postgres connection string |
+| `DATABASE_URL` or `POSTGRES_URL` | Neon / Vercel Postgres connection string (`POSTGRES_URL` is also supported for legacy or auto-populated Vercel Postgres envs) |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob read/write token |
 | `RESEND_API_KEY` | Resend API key for contact form emails |
 | `CONTACT_EMAIL` | Email address that receives contact form submissions |
@@ -90,7 +90,7 @@ Copy `.env.example` to `.env.local` and set the following:
 
 ### Database Initialization
 
-After deploying (or on first run), visit `/api/seed` once to create the database tables and seed initial data.
+After deploying (or on first run), first log in at `/admin` to create an authenticated admin session, then visit `/api/seed` once to create the database tables and seed initial data.
 
 ### Build for Production
 
