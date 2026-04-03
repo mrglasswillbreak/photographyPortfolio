@@ -1,50 +1,48 @@
 # LensCraft Photography Portfolio
 
-A modern, elegant photography portfolio website built with React, TypeScript, and Tailwind CSS. Features luxurious animations, responsive design, and dark/light mode support.
+A modern photography portfolio built with **Next.js 16**, **React 19**, **TypeScript**, and **Tailwind CSS v4**.  
+It includes a public-facing portfolio experience plus a protected admin dashboard for managing content.
 
-![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss)
-![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite)
+## ✨ New Features
 
-## ✨ Features
+- **Admin Authentication** with JWT cookie sessions.
+- **Admin Dashboard** with overview cards and quick actions.
+- **Gallery Management** tools for portfolio images.
+- **Services Management** to update offerings.
+- **Content Management** for editable site sections.
+- **API Routes** for auth, gallery, services, content, uploads, and seeding.
+- **Animated, Responsive UI** across the public site and admin interface.
 
-- **Luxurious Animations** - Smooth fade in/out effects powered by Framer Motion
-- **Responsive Design** - Fully mobile and desktop friendly
-- **Dark/Light Mode** - System preference detection with manual toggle
-- **Masonry Gallery** - Beautiful image grid with hover effects
-- **Contact Form** - Form validation and submission feedback
-- **Modern Stack** - React 18, TypeScript, Tailwind CSS v4, Vite
+## 🖥️ Desktop Screenshots
 
-## 🖼️ Sections
+> Note: The execution environment for this task does not provide a browser runtime, so real desktop captures could not be generated automatically. Placeholder image files are included so paths are ready for replacement with real screenshots.
 
-- **Hero** - Full-screen intro with parallax background
-- **Gallery** - Masonry grid with image hover effects
-- **Services** - Animated service cards
-- **About** - Photographer bio with statistics
-- **Contact** - Contact form with info cards
-- **Footer** - Social links and branding
+### Main Site (Desktop)
+
+![Main site desktop screenshot placeholder](docs/screenshots/main-site-1-unavailable.svg)
+
+### Admin Interface (Desktop)
+
+![Admin desktop screenshot placeholder](docs/screenshots/admin-interface-1-unavailable.svg)
+
+### Additional Captures Prepared
+
+- `docs/screenshots/main-site-2-unavailable.svg`
+- `docs/screenshots/admin-interface-2-unavailable.svg`
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
 - Node.js 18+
-- npm or yarn
+- npm
 
 ### Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/mrglasswillbreak/photographyPortfolio.git
-
-# Navigate to project
 cd photographyPortfolio
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
 
@@ -54,68 +52,41 @@ npm run dev
 npm run build
 ```
 
-### Preview Production Build
+### Start Production Server
 
 ```bash
-npm run preview
+npm run start
 ```
 
-## 🛠️ Tech Stack
+## 🔐 Admin Setup
 
-| Technology | Purpose |
-|------------|---------|
-| React 18 | UI Framework |
-| TypeScript | Type Safety |
-| Tailwind CSS v4 | Styling |
-| Vite | Build Tool |
-| Framer Motion | Animations |
-| Lucide React | Icons |
+Create a local environment file:
+
+```bash
+cp .env.example .env.local
+```
+
+Set at minimum:
+
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD`
+- `JWT_SECRET`
+
+Then sign in at:
+
+- `/admin/login`
 
 ## 📁 Project Structure
 
+```text
+app/
+├── page.tsx                        # Public homepage
+├── admin/
+│   ├── login/page.tsx              # Admin login
+│   └── dashboard/                  # Protected dashboard pages
+└── api/                            # Auth/content/gallery/services routes
 ```
-src/
-├── components/
-│   ├── layout/       # Layout, Navbar
-│   ├── sections/     # Hero, Gallery, Services, About, Contact, Footer
-│   └── ui/           # ThemeToggle
-├── context/          # ThemeContext
-├── data/             # Gallery images, services data
-├── utils/            # Animation variants
-├── App.tsx           # Main app component
-└── main.tsx          # Entry point
-```
-
-## 🎨 Customization
-
-### Adding Images
-
-Edit `src/data/index.ts` to add your own gallery images:
-
-```typescript
-export const galleryImages = [
-  {
-    id: 1,
-    src: 'your-image-url.jpg',
-    alt: 'Image description',
-    category: 'Category',
-  },
-  // ...
-];
-```
-
-### Changing Colors
-
-Tailwind CSS classes are used throughout. Modify the neutral color palette or add custom colors in your CSS.
-
-### Animation Timing
-
-Adjust animation variants in `src/utils/animations.ts` for different easing and duration.
 
 ## 📄 License
 
-MIT License - feel free to use for personal or commercial projects.
-
----
-
-Built with ❤️ using React, TypeScript, and Tailwind CSS
+MIT

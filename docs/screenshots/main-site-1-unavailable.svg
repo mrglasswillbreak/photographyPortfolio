@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1366" height="768" viewBox="0 0 1366 768">
+  <rect width="1366" height="768" fill="#111827"/>
+  <rect x="80" y="80" width="1206" height="608" rx="20" fill="#1f2937" stroke="#4b5563"/>
+  <text x="683" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" fill="#f9fafb">Main Site Screenshot</text>
+  <text x="683" y="390" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#d1d5db">Unavailable in this environment (no browser runtime)</text>
+</svg>
