@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, Trash2, Edit2, Check, X, Plus, Star, Loader2 } from 'lucide-react';
+import { upload } from '@vercel/blob/client';
 import type { GalleryImage } from '@/lib/types';
 
 const CATEGORIES = ['Landscape', 'Wedding', 'Portrait', 'Nature', 'Commercial', 'Event', 'Other'];
@@ -65,20 +66,17 @@ export default function GalleryManagerPage() {
     setUploading(true);
     setError('');
     try {
-      const form = new FormData();
-      form.append('file', file);
-      const uploadRes = await fetch('/api/upload', { method: 'POST', body: form });
-      if (!uploadRes.ok) {
-        const e = await uploadRes.json();
-        throw new Error(e.error || 'Upload failed');
-      }
-      const { url } = await uploadRes.json();
+      const pathname = `gallery/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const blob = await upload(pathname, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+      });
 
       const name = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
       const createRes = await fetch('/api/gallery', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: name, alt: name, category: 'Other', url, featured: false, display_order: images.length }),
+        body: JSON.stringify({ title: name, alt: name, category: 'Other', url: blob.url, featured: false, display_order: images.length }),
       });
       if (!createRes.ok) throw new Error('Failed to save image');
       await loadImages();

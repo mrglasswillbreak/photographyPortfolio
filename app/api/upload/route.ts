@@ -1,40 +1,43 @@
 import { NextResponse } from 'next/server';
-import { put } from '@vercel/blob';
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
 import { isAuthenticated } from '@/lib/auth';
 
-export async function POST(request: Request) {
-  if (!(await isAuthenticated())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+
+export async function POST(request: Request): Promise<Response> {
+  const body = (await request.json()) as HandleUploadBody;
 
   try {
-    const formData = await request.formData();
-    const file = formData.get('file') as File | null;
+    const jsonResponse = await handleUpload({
+      body,
+      request,
+      onBeforeGenerateToken: async (pathname) => {
+        if (!(await isAuthenticated())) {
+          throw new Error('Unauthorized');
+        }
 
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
-    }
+        const ext = pathname.split('.').pop()?.toLowerCase() ?? '';
+        const allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+        if (!allowedExts.includes(ext)) {
+          throw new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.');
+        }
 
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json(
-        { error: 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.' },
-        { status: 400 }
-      );
-    }
+        return {
+          allowedContentTypes: ALLOWED_CONTENT_TYPES,
+          maximumSizeInBytes: MAX_SIZE,
+        };
+      },
+      onUploadCompleted: async ({ blob }) => {
+        console.log('Image uploaded to blob storage:', blob.url);
+      },
+    });
 
-    // Validate file size (10MB max)
-    const MAX_SIZE = 10 * 1024 * 1024;
-    if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: 'File too large. Maximum size is 10MB.' }, { status: 400 });
-    }
-
-    const filename = `gallery/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    const blob = await put(filename, file, { access: 'public' });
-
-    return NextResponse.json({ url: blob.url }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    return NextResponse.json(jsonResponse);
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Upload failed' },
+      { status: 400 }
+    );
   }
 }
