@@ -38,6 +38,7 @@ export default function GalleryManagerPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<Partial<GalleryImage>>({});
   const [saving, setSaving] = useState(false);
@@ -64,12 +65,24 @@ export default function GalleryManagerPage() {
   const uploadFile = useCallback(async (file: File) => {
     if (!file) return;
     setUploading(true);
+    setUploadProgress(0);
     setError('');
+
+    // Abort after 90 seconds so the UI never hangs indefinitely.
+    // The @vercel/blob/client library retries network errors up to 10 times
+    // with exponential back-off; without a timeout this can stall for >15 min.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 90_000);
+
     try {
       const pathname = `gallery/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
       const blob = await upload(pathname, file, {
         access: 'public',
         handleUploadUrl: '/api/upload',
+        abortSignal: controller.signal,
+        onUploadProgress: ({ percentage }) => {
+          setUploadProgress(Math.round(percentage));
+        },
       });
 
       const name = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
@@ -81,9 +94,16 @@ export default function GalleryManagerPage() {
       if (!createRes.ok) throw new Error('Failed to save image');
       await loadImages();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      const msg = err instanceof Error ? err.message : 'Upload failed';
+      if (msg.toLowerCase().includes('aborted')) {
+        setError('Upload timed out. Try a smaller file or check your connection, then try again.');
+      } else {
+        setError(msg);
+      }
     } finally {
+      clearTimeout(timeoutId);
       setUploading(false);
+      setUploadProgress(0);
     }
   }, [images.length, loadImages]);
 
@@ -161,7 +181,7 @@ export default function GalleryManagerPage() {
           className="flex items-center gap-2 px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
         >
           {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-          Upload Image
+          {uploading ? (uploadProgress > 0 ? `${uploadProgress}%` : 'Uploading…') : 'Upload Image'}
         </button>
         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
       </div>
@@ -186,7 +206,17 @@ export default function GalleryManagerPage() {
         {uploading ? (
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="w-8 h-8 text-neutral-400 animate-spin" />
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">Uploading...</p>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              {uploadProgress > 0 ? `Uploading… ${uploadProgress}%` : 'Preparing upload…'}
+            </p>
+            {uploadProgress > 0 && (
+              <div className="w-40 h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-neutral-900 dark:bg-white rounded-full transition-all duration-200"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
