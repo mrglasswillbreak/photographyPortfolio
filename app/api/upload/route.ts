@@ -28,9 +28,11 @@ export async function POST(request: Request): Promise<Response> {
           maximumSizeInBytes: MAX_SIZE,
         };
       },
-      onUploadCompleted: async ({ blob }) => {
-        console.log('Image uploaded to blob storage:', blob.url);
-      },
+      // onUploadCompleted is intentionally omitted: including it causes the library
+      // to embed a callbackUrl in the client token and Vercel Blob then POSTs back
+      // to that URL after upload. On preview deployments or when the callback URL
+      // cannot be resolved the upload stalls. We don't need the callback for anything
+      // critical, so leaving it out keeps the flow simpler and more reliable.
     });
 
     return NextResponse.json(jsonResponse);
