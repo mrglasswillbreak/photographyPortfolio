@@ -61,7 +61,7 @@ export default function AnalyticsTracker() {
       const duration = Math.round((Date.now() - startTimeRef.current) / 1000);
       const id = recordIdRef.current;
       if (duration > 0 && id) {
-        const payload = JSON.stringify({ id, duration_seconds: duration });
+        const payload = JSON.stringify({ id, session_id: sessionId, duration_seconds: duration });
         try {
           navigator.sendBeacon(
             '/api/analytics/track',

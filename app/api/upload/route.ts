@@ -6,9 +6,9 @@ const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/g
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
 
 export async function POST(request: Request): Promise<Response> {
-  const body = (await request.json()) as HandleUploadBody;
-
   try {
+    const body = (await request.json()) as HandleUploadBody;
+
     const jsonResponse = await handleUpload({
       body,
       request,
@@ -35,9 +35,11 @@ export async function POST(request: Request): Promise<Response> {
 
     return NextResponse.json(jsonResponse);
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Upload failed';
+    const isUnauthorized = message === 'Unauthorized';
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Upload failed' },
-      { status: 400 }
+      { error: message },
+      { status: isUnauthorized ? 401 : 400 }
     );
   }
 }
