@@ -4,6 +4,15 @@ import { motion } from 'framer-motion';
 import { fadeIn } from '@/utils/animations';
 import { SOCIAL_PLATFORMS } from '@/components/ui/SocialIcons';
 
+function isSafeUrl(url: string): boolean {
+  try {
+    const { protocol } = new URL(url);
+    return protocol === 'https:' || protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 function Footer() {
   const currentYear = useMemo(() => new Date().getFullYear(), []);
   const [footerText, setFooterText] = useState('');
@@ -23,7 +32,7 @@ function Footer() {
       .catch(() => {});
   }, []);
 
-  const activeSocials = SOCIAL_PLATFORMS.filter((p) => socialUrls[p.id]);
+  const activeSocials = SOCIAL_PLATFORMS.filter((p) => socialUrls[p.id] && isSafeUrl(socialUrls[p.id]));
 
   return (
     <motion.footer
