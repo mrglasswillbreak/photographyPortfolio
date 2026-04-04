@@ -21,7 +21,7 @@ export async function GET(request: Request) {
         COUNT(DISTINCT session_id) AS unique_sessions,
         ROUND(AVG(duration_seconds) FILTER (WHERE duration_seconds IS NOT NULL AND duration_seconds > 0))::text AS avg_duration
       FROM page_views
-      WHERE created_at >= NOW() - (${days} || ' days')::INTERVAL
+      WHERE created_at >= NOW() - INTERVAL '1 day' * ${days}
     `;
 
     // Views per day (last N days)
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
         TO_CHAR(DATE_TRUNC('day', created_at), 'YYYY-MM-DD') AS date,
         COUNT(*) AS count
       FROM page_views
-      WHERE created_at >= NOW() - (${days} || ' days')::INTERVAL
+      WHERE created_at >= NOW() - INTERVAL '1 day' * ${days}
       GROUP BY DATE_TRUNC('day', created_at)
       ORDER BY DATE_TRUNC('day', created_at) ASC
     `;
@@ -39,18 +39,18 @@ export async function GET(request: Request) {
     const devicesResult = await sql<{ device_type: string; count: string }>`
       SELECT device_type, COUNT(*) AS count
       FROM page_views
-      WHERE created_at >= NOW() - (${days} || ' days')::INTERVAL
+      WHERE created_at >= NOW() - INTERVAL '1 day' * ${days}
       GROUP BY device_type
-      ORDER BY count DESC
+      ORDER BY COUNT(*) DESC
     `;
 
     // Browsers
     const browsersResult = await sql<{ browser: string; count: string }>`
       SELECT browser, COUNT(*) AS count
       FROM page_views
-      WHERE created_at >= NOW() - (${days} || ' days')::INTERVAL
+      WHERE created_at >= NOW() - INTERVAL '1 day' * ${days}
       GROUP BY browser
-      ORDER BY count DESC
+      ORDER BY COUNT(*) DESC
       LIMIT 8
     `;
 
@@ -58,9 +58,9 @@ export async function GET(request: Request) {
     const osResult = await sql<{ os: string; count: string }>`
       SELECT os, COUNT(*) AS count
       FROM page_views
-      WHERE created_at >= NOW() - (${days} || ' days')::INTERVAL
+      WHERE created_at >= NOW() - INTERVAL '1 day' * ${days}
       GROUP BY os
-      ORDER BY count DESC
+      ORDER BY COUNT(*) DESC
       LIMIT 8
     `;
 
@@ -68,9 +68,9 @@ export async function GET(request: Request) {
     const referrersResult = await sql<{ referrer_source: string; count: string }>`
       SELECT referrer_source, COUNT(*) AS count
       FROM page_views
-      WHERE created_at >= NOW() - (${days} || ' days')::INTERVAL
+      WHERE created_at >= NOW() - INTERVAL '1 day' * ${days}
       GROUP BY referrer_source
-      ORDER BY count DESC
+      ORDER BY COUNT(*) DESC
       LIMIT 10
     `;
 
@@ -80,9 +80,9 @@ export async function GET(request: Request) {
         CASE WHEN country = '' THEN 'Unknown' ELSE country END AS country,
         COUNT(*) AS count
       FROM page_views
-      WHERE created_at >= NOW() - (${days} || ' days')::INTERVAL
+      WHERE created_at >= NOW() - INTERVAL '1 day' * ${days}
       GROUP BY country
-      ORDER BY count DESC
+      ORDER BY COUNT(*) DESC
       LIMIT 10
     `;
 
