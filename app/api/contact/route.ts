@@ -30,9 +30,11 @@ export async function POST(request: Request) {
     }
 
     if (!resendKey || !contactEmail) {
-      // If email not configured, still return success (graceful degradation)
-      console.warn('Email not configured: RESEND_API_KEY or CONTACT_EMAIL missing');
-      return NextResponse.json({ success: true });
+      console.error('Email not configured: RESEND_API_KEY or CONTACT_EMAIL missing');
+      return NextResponse.json(
+        { error: 'Contact form is not configured. Please try again later.' },
+        { status: 503 }
+      );
     }
 
     const resend = new Resend(resendKey);
