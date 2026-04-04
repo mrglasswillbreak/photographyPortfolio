@@ -68,6 +68,36 @@ export async function initializeDatabase() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS page_views (
+      id SERIAL PRIMARY KEY,
+      session_id VARCHAR(64) NOT NULL,
+      page_url VARCHAR(255) NOT NULL,
+      referrer_source VARCHAR(100) NOT NULL DEFAULT 'Direct',
+      device_type VARCHAR(20) NOT NULL DEFAULT 'Desktop',
+      browser VARCHAR(50) NOT NULL DEFAULT 'Other',
+      os VARCHAR(50) NOT NULL DEFAULT 'Other',
+      country VARCHAR(2) NOT NULL DEFAULT '',
+      duration_seconds INTEGER,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
+
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_page_views_created_at
+    ON page_views (created_at)
+  `;
+
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_page_views_session_id
+    ON page_views (session_id)
+  `;
+
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_page_views_created_at_session_id
+    ON page_views (created_at, session_id)
+  `;
 }
 
 export async function getContent(section: string, key: string, defaultValue = ''): Promise<string> {
