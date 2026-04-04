@@ -6,16 +6,23 @@ function getSessionId(): string {
   try {
     let id = sessionStorage.getItem('_analytics_sid');
     if (!id) {
-      id = (typeof crypto !== 'undefined' && crypto.randomUUID)
-        ? crypto.randomUUID()
-        : Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+      id = generateId();
       sessionStorage.setItem('_analytics_sid', id);
     }
     return id;
   } catch {
-    return (typeof crypto !== 'undefined' && crypto.randomUUID)
-      ? crypto.randomUUID()
-      : Date.now().toString(36);
+    return generateId();
+  }
+}
+
+function generateId(): string {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    // Fallback using crypto.getRandomValues for older environments
+    const arr = new Uint8Array(16);
+    crypto.getRandomValues(arr);
+    return Array.from(arr, (b) => b.toString(16).padStart(2, '0')).join('');
   }
 }
 
