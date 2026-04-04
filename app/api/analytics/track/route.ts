@@ -122,6 +122,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ id: result.rows[0]?.id }, { status: 201 });
   } catch (error) {
+    // If the page_views table doesn't exist yet (before /api/seed has been called),
+    // silently skip tracking rather than returning a visible error.
+    const msg = error instanceof Error ? error.message : String(error);
+    if (/relation\s+"?page_views"?\s+does not exist/i.test(msg) || (error as { code?: string })?.code === '42P01') {
+      return NextResponse.json({ ok: false }, { status: 200 });
+    }
     console.error('Analytics track error:', error);
     return NextResponse.json({ ok: false }, { status: 500 });
   }

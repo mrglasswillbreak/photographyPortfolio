@@ -287,7 +287,13 @@ export default function AnalyticsPage() {
     setError('');
     try {
       const res = await fetch(`/api/analytics?days=${days}`);
-      if (!res.ok) throw new Error('Failed to load analytics');
+      if (res.status === 401) {
+        throw new Error('Session expired — please sign in again.');
+      }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(body.error ?? 'Failed to load analytics');
+      }
       const data = await res.json();
       setAnalytics(data);
     } catch (e) {
@@ -338,7 +344,16 @@ export default function AnalyticsPage() {
 
       {error && (
         <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400">
-          {error}
+          <p className="font-medium">{error}</p>
+          {(error.toLowerCase().includes('database') || error.toLowerCase().includes('failed to fetch analytics')) && (
+            <p className="mt-1 text-xs">
+              If this is a fresh deployment, visit{' '}
+              <a href="/api/seed" target="_blank" rel="noopener noreferrer" className="underline font-medium">
+                /api/seed
+              </a>{' '}
+              once to initialize the database tables, then refresh this page.
+            </p>
+          )}
         </div>
       )}
 
