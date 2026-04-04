@@ -3,11 +3,12 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Images, Type, Layers, LayoutDashboard, LogOut, Menu, X, Camera, ExternalLink } from 'lucide-react';
+import { Images, Type, Layers, LayoutDashboard, LogOut, Menu, X, Camera, ExternalLink, BarChart2 } from 'lucide-react';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Overview', icon: LayoutDashboard, exact: true },
   { href: '/admin/dashboard/gallery', label: 'Gallery', icon: Images, exact: false },
+  { href: '/admin/dashboard/analytics', label: 'Analytics', icon: BarChart2, exact: false },
   { href: '/admin/dashboard/content', label: 'Content', icon: Type, exact: false },
   { href: '/admin/dashboard/services', label: 'Services', icon: Layers, exact: false },
 ];

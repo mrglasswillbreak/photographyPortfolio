@@ -68,6 +68,21 @@ export async function initializeDatabase() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS page_views (
+      id SERIAL PRIMARY KEY,
+      session_id VARCHAR(64) NOT NULL,
+      page_url VARCHAR(255) NOT NULL DEFAULT '/',
+      referrer_source VARCHAR(100) NOT NULL DEFAULT 'Direct',
+      device_type VARCHAR(20) NOT NULL DEFAULT 'Desktop',
+      browser VARCHAR(50) NOT NULL DEFAULT 'Other',
+      os VARCHAR(50) NOT NULL DEFAULT 'Other',
+      country VARCHAR(10) NOT NULL DEFAULT '',
+      duration_seconds INTEGER,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
 }
 
 export async function getContent(section: string, key: string, defaultValue = ''): Promise<string> {
