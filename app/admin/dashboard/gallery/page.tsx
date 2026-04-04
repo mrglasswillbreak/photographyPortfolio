@@ -105,11 +105,18 @@ export default function GalleryManagerPage() {
       }
       await loadImages();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Upload failed';
-      if (msg.toLowerCase().includes('abort') || msg.toLowerCase().includes('timed out')) {
+      // AbortError  — from controller.abort() (30 s timeout)
+      // TimeoutError — from AbortSignal.timeout() on the gallery POST
+      // BlobRequestAbortedError — @vercel/blob/client wraps AbortErrors
+      const isTimeout =
+        err instanceof Error &&
+        (err.name === 'AbortError' ||
+          err.name === 'TimeoutError' ||
+          err.name === 'BlobRequestAbortedError');
+      if (isTimeout) {
         setError('Upload timed out. Try a smaller file or check your connection, then try again.');
       } else {
-        setError(msg);
+        setError(err instanceof Error ? err.message : 'Upload failed');
       }
     } finally {
       clearTimeout(timeoutId);
