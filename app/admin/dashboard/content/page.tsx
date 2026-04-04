@@ -69,6 +69,16 @@ const SECTIONS: Section[] = [
   },
 ];
 
+const SOCIAL_PLACEHOLDERS: Record<string, string> = {
+  instagram: 'https://instagram.com/yourprofile',
+  facebook: 'https://facebook.com/yourpage',
+  twitter: 'https://x.com/yourhandle',
+  tiktok: 'https://tiktok.com/@yourhandle',
+  snapchat: 'https://snapchat.com/add/yourusername',
+  youtube: 'https://youtube.com/@yourchannel',
+  linkedin: 'https://linkedin.com/in/yourprofile',
+};
+
 const FOOTER_SECTION_ID = 'footer';
 
 export default function ContentPage() {
@@ -124,7 +134,8 @@ export default function ContentPage() {
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file || !pendingImageKey.current) return;
-      const [sectionId, key] = pendingImageKey.current.split(/_(.+)/);
+      const [sectionId, ...keyParts] = pendingImageKey.current.split('_');
+      const key = keyParts.join('_');
       handleImageUpload(sectionId, key, file);
       e.target.value = '';
     },
@@ -381,7 +392,7 @@ export default function ContentPage() {
                       <input
                         type="url"
                         value={value}
-                        placeholder={`https://${id}.com/yourprofile`}
+                        placeholder={SOCIAL_PLACEHOLDERS[id] ?? `https://${id}.com/yourprofile`}
                         onChange={(e) => setContent((prev) => ({ ...prev, [contentKey]: e.target.value }))}
                         className="flex-1 px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
                       />
