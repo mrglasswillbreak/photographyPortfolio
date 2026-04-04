@@ -68,11 +68,13 @@ export default function GalleryManagerPage() {
     setUploadProgress(0);
     setError('');
 
-    // Abort after 30 seconds so users get feedback quickly if the upload stalls.
-    // @vercel/blob/client retries network errors up to 10 times with exponential
-    // back-off, which without a timeout can stall for >15 min.
+    // Abort after 5 minutes (300 s). A 10 MB file on a 512 Kbps connection takes
+    // ~160 s, so 30 s was far too short and was aborting legitimate uploads.
+    // @vercel/blob/client retries network errors with exponential back-off (up to
+    // 10 retries); without a cap the worst-case wait is ~17 min, so we keep the
+    // timeout as a safety net for truly stuck transfers.
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30_000);
+    const timeoutId = setTimeout(() => controller.abort(), 300_000);
 
     try {
       const pathname = `gallery/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
@@ -105,16 +107,15 @@ export default function GalleryManagerPage() {
       }
       await loadImages();
     } catch (err) {
-      // AbortError  — from controller.abort() (30 s timeout)
-      // TimeoutError — from AbortSignal.timeout() on the gallery POST
-      // BlobRequestAbortedError — @vercel/blob/client wraps AbortErrors
-      const isTimeout =
-        err instanceof Error &&
-        (err.name === 'AbortError' ||
-          err.name === 'TimeoutError' ||
-          err.name === 'BlobRequestAbortedError');
-      if (isTimeout) {
-        setError('Upload timed out. Try a smaller file or check your connection, then try again.');
+      // Check controller.signal.aborted first — that's the most reliable way to
+      // detect that OUR timeout fired.  BlobRequestAbortedError is not exported
+      // from @vercel/blob/client so we can't use instanceof, and the library's
+      // BlobError base class doesn't set this.name, making err.name unreliable.
+      if (controller.signal.aborted) {
+        setError('Upload timed out. Please try again, or check your connection.');
+      } else if (err instanceof Error && err.name === 'TimeoutError') {
+        // AbortSignal.timeout() on the gallery POST throws a TimeoutError DOMException
+        setError('Connection timed out while saving. Please try again.');
       } else {
         setError(err instanceof Error ? err.message : 'Upload failed');
       }
