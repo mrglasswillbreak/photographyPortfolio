@@ -68,11 +68,11 @@ export default function GalleryManagerPage() {
     setUploadProgress(0);
     setError('');
 
-    // Abort after 90 seconds so the UI never hangs indefinitely.
-    // The @vercel/blob/client library retries network errors up to 10 times
-    // with exponential back-off; without a timeout this can stall for >15 min.
+    // Abort after 30 seconds so users get feedback quickly if the upload stalls.
+    // @vercel/blob/client retries network errors up to 10 times with exponential
+    // back-off, which without a timeout can stall for >15 min.
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 90_000);
+    const timeoutId = setTimeout(() => controller.abort(), 30_000);
 
     try {
       const pathname = `gallery/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
@@ -81,21 +81,32 @@ export default function GalleryManagerPage() {
         handleUploadUrl: '/api/upload',
         abortSignal: controller.signal,
         onUploadProgress: ({ percentage }) => {
-          setUploadProgress(Math.round(percentage));
+          // Cap at 99 during transfer — 100 is set explicitly once upload() resolves
+          // so the progress bar doesn't stall at the last throttled value.
+          setUploadProgress(Math.min(99, Math.round(percentage)));
         },
       });
+
+      // Bytes are confirmed received by Vercel Blob — advance to 100% so the
+      // user sees "Processing…" rather than a stalled 99% bar while we save
+      // the image metadata to the gallery database.
+      setUploadProgress(100);
 
       const name = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
       const createRes = await fetch('/api/gallery', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: name, alt: name, category: 'Other', url: blob.url, featured: false, display_order: images.length }),
+        signal: AbortSignal.timeout(30_000),
       });
-      if (!createRes.ok) throw new Error('Failed to save image');
+      if (!createRes.ok) {
+        const data = await createRes.json().catch(() => ({}));
+        throw new Error((data as { error?: string }).error || 'Failed to save image');
+      }
       await loadImages();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Upload failed';
-      if (msg.toLowerCase().includes('aborted')) {
+      if (msg.toLowerCase().includes('abort') || msg.toLowerCase().includes('timed out')) {
         setError('Upload timed out. Try a smaller file or check your connection, then try again.');
       } else {
         setError(msg);
@@ -207,7 +218,11 @@ export default function GalleryManagerPage() {
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="w-8 h-8 text-neutral-400 animate-spin" />
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              {uploadProgress > 0 ? `Uploading… ${uploadProgress}%` : 'Preparing upload…'}
+              {uploadProgress === 100
+                ? 'Processing…'
+                : uploadProgress > 0
+                  ? `Uploading… ${uploadProgress}%`
+                  : 'Preparing upload…'}
             </p>
             {uploadProgress > 0 && (
               <div className="w-40 h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
