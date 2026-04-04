@@ -112,7 +112,7 @@ export default function GalleryManagerPage() {
       // from @vercel/blob/client so we can't use instanceof, and the library's
       // BlobError base class doesn't set this.name, making err.name unreliable.
       if (controller.signal.aborted) {
-        setError('Upload timed out. Please try again, or check your connection.');
+        setError('Upload timed out. Try again or check your connection.');
       } else if (err instanceof Error && err.name === 'TimeoutError') {
         // AbortSignal.timeout() on the gallery POST throws a TimeoutError DOMException
         setError('Connection timed out while saving. Please try again.');
