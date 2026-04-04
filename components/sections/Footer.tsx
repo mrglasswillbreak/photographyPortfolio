@@ -1,18 +1,29 @@
 'use client';
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Globe, Camera, Share2 } from 'lucide-react';
 import { fadeIn } from '@/utils/animations';
-
-const socialLinks = [
-  { icon: Camera, href: '#', label: 'Portfolio' },
-  { icon: Globe, href: '#', label: 'Website' },
-  { icon: Mail, href: '#', label: 'Email' },
-  { icon: Share2, href: '#', label: 'Share' },
-] as const;
+import { SOCIAL_PLATFORMS } from '@/components/ui/SocialIcons';
 
 function Footer() {
   const currentYear = useMemo(() => new Date().getFullYear(), []);
+  const [footerText, setFooterText] = useState('');
+  const [socialUrls, setSocialUrls] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    fetch('/api/content')
+      .then((r) => r.json())
+      .then((data: Record<string, string>) => {
+        setFooterText(data.site_footer_text ?? '');
+        const urls: Record<string, string> = {};
+        for (const platform of SOCIAL_PLATFORMS) {
+          urls[platform.id] = data[`footer_${platform.id}_url`] ?? '';
+        }
+        setSocialUrls(urls);
+      })
+      .catch(() => {});
+  }, []);
+
+  const activeSocials = SOCIAL_PLATFORMS.filter((p) => socialUrls[p.id]);
 
   return (
     <motion.footer
@@ -24,21 +35,27 @@ function Footer() {
           <motion.a href="#home" className="text-2xl font-light tracking-wider text-neutral-900 dark:text-white" whileHover={{ scale: 1.02 }}>
             LENS<span className="font-semibold">CRAFT</span>
           </motion.a>
-          <nav className="flex items-center gap-4" aria-label="Social media links">
-            {socialLinks.map((social) => (
-              <motion.a
-                key={social.label}
-                href={social.href}
-                aria-label={social.label}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-900 transition-all duration-300"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <social.icon className="w-5 h-5" aria-hidden="true" />
-              </motion.a>
-            ))}
-          </nav>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">© {currentYear} LensCraft. All rights reserved.</p>
+          {activeSocials.length > 0 && (
+            <nav className="flex items-center gap-4" aria-label="Social media links">
+              {activeSocials.map(({ id, label, Icon }) => (
+                <motion.a
+                  key={id}
+                  href={socialUrls[id]}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={label}
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-900 transition-all duration-300"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Icon className="w-5 h-5" />
+                </motion.a>
+              ))}
+            </nav>
+          )}
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            {footerText || `© ${currentYear} LensCraft. All rights reserved.`}
+          </p>
         </div>
       </div>
     </motion.footer>
