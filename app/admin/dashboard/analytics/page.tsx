@@ -42,6 +42,8 @@ const PALETTE = [
   '#06b6d4', '#f97316', '#6366f1', '#84cc16', '#ef4444',
 ];
 
+const MAX_X_LABELS = 7;
+
 /* ─────────────────────────────── StatCard ──────────────────────────────── */
 function StatCard({
   icon: Icon,
@@ -183,8 +185,8 @@ function LineChart({ data }: { data: { date: string; count: number }[] }) {
 
   // Y-axis ticks
   const yTicks = [0, Math.round(maxVal / 2), maxVal];
-  // X-axis: show ≤7 labels
-  const step = Math.ceil(data.length / 7);
+  // X-axis: show ≤MAX_X_LABELS labels
+  const step = Math.ceil(data.length / MAX_X_LABELS);
   const xLabels = data.filter((_, i) => i % step === 0 || i === data.length - 1);
 
   return (
