@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, Trash2, Edit2, Check, X, Plus, Star, Loader2 } from 'lucide-react';
+import { upload } from '@vercel/blob/client';
 import type { GalleryImage } from '@/lib/types';
 
 const CATEGORIES = ['Landscape', 'Wedding', 'Portrait', 'Nature', 'Commercial', 'Event', 'Other'];
@@ -37,6 +38,7 @@ export default function GalleryManagerPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<Partial<GalleryImage>>({});
   const [saving, setSaving] = useState(false);
@@ -63,29 +65,64 @@ export default function GalleryManagerPage() {
   const uploadFile = useCallback(async (file: File) => {
     if (!file) return;
     setUploading(true);
+    setUploadProgress(0);
     setError('');
+
+    // Abort after 5 minutes (300 s). A 10 MB file on a 512 Kbps connection takes
+    // ~160 s, so 30 s was far too short and was aborting legitimate uploads.
+    // @vercel/blob/client retries network errors with exponential back-off (up to
+    // 10 retries); without a cap the worst-case wait is ~17 min, so we keep the
+    // timeout as a safety net for truly stuck transfers.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 300_000);
+
     try {
-      const form = new FormData();
-      form.append('file', file);
-      const uploadRes = await fetch('/api/upload', { method: 'POST', body: form });
-      if (!uploadRes.ok) {
-        const e = await uploadRes.json();
-        throw new Error(e.error || 'Upload failed');
-      }
-      const { url } = await uploadRes.json();
+      const pathname = `gallery/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const blob = await upload(pathname, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+        abortSignal: controller.signal,
+        onUploadProgress: ({ percentage }) => {
+          // Cap at 99 during transfer — 100 is set explicitly once upload() resolves
+          // so the progress bar doesn't stall at the last throttled value.
+          setUploadProgress(Math.min(99, Math.round(percentage)));
+        },
+      });
+
+      // Bytes are confirmed received by Vercel Blob — advance to 100% so the
+      // user sees "Processing…" rather than a stalled 99% bar while we save
+      // the image metadata to the gallery database.
+      setUploadProgress(100);
 
       const name = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
       const createRes = await fetch('/api/gallery', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: name, alt: name, category: 'Other', url, featured: false, display_order: images.length }),
+        body: JSON.stringify({ title: name, alt: name, category: 'Other', url: blob.url, featured: false, display_order: images.length }),
+        signal: AbortSignal.timeout(30_000),
       });
-      if (!createRes.ok) throw new Error('Failed to save image');
+      if (!createRes.ok) {
+        const data = await createRes.json().catch(() => ({}));
+        throw new Error((data as { error?: string }).error || 'Failed to save image');
+      }
       await loadImages();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      // Check controller.signal.aborted first — that's the most reliable way to
+      // detect that OUR timeout fired.  BlobRequestAbortedError is not exported
+      // from @vercel/blob/client so we can't use instanceof, and the library's
+      // BlobError base class doesn't set this.name, making err.name unreliable.
+      if (controller.signal.aborted) {
+        setError('Upload timed out. Try again or check your connection.');
+      } else if (err instanceof Error && err.name === 'TimeoutError') {
+        // AbortSignal.timeout() on the gallery POST throws a TimeoutError DOMException
+        setError('Connection timed out while saving. Please try again.');
+      } else {
+        setError(err instanceof Error ? err.message : 'Upload failed');
+      }
     } finally {
+      clearTimeout(timeoutId);
       setUploading(false);
+      setUploadProgress(0);
     }
   }, [images.length, loadImages]);
 
@@ -163,7 +200,7 @@ export default function GalleryManagerPage() {
           className="flex items-center gap-2 px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
         >
           {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-          Upload Image
+          {uploading ? (uploadProgress > 0 ? `${uploadProgress}%` : 'Uploading…') : 'Upload Image'}
         </button>
         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
       </div>
@@ -188,7 +225,21 @@ export default function GalleryManagerPage() {
         {uploading ? (
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="w-8 h-8 text-neutral-400 animate-spin" />
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">Uploading...</p>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              {uploadProgress === 100
+                ? 'Processing…'
+                : uploadProgress > 0
+                  ? `Uploading… ${uploadProgress}%`
+                  : 'Preparing upload…'}
+            </p>
+            {uploadProgress > 0 && (
+              <div className="w-40 h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-neutral-900 dark:bg-white rounded-full transition-all duration-200"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center gap-2">
