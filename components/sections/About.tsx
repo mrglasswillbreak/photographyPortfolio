@@ -4,9 +4,10 @@ import { motion } from 'framer-motion';
 import { fadeInLeft, fadeInRight, cardFadeIn, imageFadeIn } from '@/utils/animations';
 import { AboutSkeleton } from '@/components/ui/Skeleton';
 
-const ABOUT_IMAGE = 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=800&q=80';
+const DEFAULT_ABOUT_IMAGE = 'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=800&q=80';
 
 interface AboutContent {
+  image: string;
   section_title: string;
   bio_1: string;
   bio_2: string;
@@ -20,6 +21,7 @@ interface AboutContent {
 }
 
 const DEFAULTS: AboutContent = {
+  image: DEFAULT_ABOUT_IMAGE,
   section_title: 'The Story Behind the Lens',
   bio_1: "With over a decade of experience in photography, I've dedicated my life to capturing the extraordinary in the ordinary.",
   bio_2: "I believe every photograph tells a story – a moment frozen in time, waiting to be remembered.",
@@ -38,6 +40,7 @@ function About() {
       .then((r) => r.json())
       .then((data) => {
         setContent({
+          image: data.about_image || DEFAULTS.image,
           section_title: data.about_section_title || DEFAULTS.section_title,
           bio_1: data.about_bio_1 || DEFAULTS.bio_1,
           bio_2: data.about_bio_2 || DEFAULTS.bio_2,
@@ -69,7 +72,7 @@ function About() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <motion.div variants={imageFadeIn} initial="hidden" whileInView="visible" viewport={{ amount: 0.3 }} className="relative">
             <motion.div className="aspect-[4/5] overflow-hidden" variants={fadeInLeft} initial="hidden" whileInView="visible" viewport={{ amount: 0.3 }}>
-              <motion.img whileHover={{ scale: 1.05 }} transition={{ duration: 0.6 }} src={ABOUT_IMAGE} alt="Photographer portrait" width={800} height={1000} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+              <motion.img whileHover={{ scale: 1.05 }} transition={{ duration: 0.6 }} src={content.image} alt="Photographer portrait" width={800} height={1000} className="w-full h-full object-cover" loading="lazy" decoding="async" />
             </motion.div>
             <motion.div className="absolute -bottom-4 -right-4 w-full h-full border-2 border-neutral-300 dark:border-neutral-700 -z-10" aria-hidden="true" initial={{ opacity: 0, x: 20, y: 20 }} whileInView={{ opacity: 1, x: 0, y: 0 }} viewport={{ amount: 0.3 }} transition={{ delay: 0.4, duration: 0.6 }} />
           </motion.div>
