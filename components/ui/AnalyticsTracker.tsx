@@ -6,12 +6,16 @@ function getSessionId(): string {
   try {
     let id = sessionStorage.getItem('_analytics_sid');
     if (!id) {
-      id = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+      id = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : Array.from({ length: 16 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
       sessionStorage.setItem('_analytics_sid', id);
     }
     return id;
   } catch {
-    return Math.random().toString(36).slice(2, 10);
+    return (typeof crypto !== 'undefined' && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : Date.now().toString(36);
   }
 }
 
@@ -46,8 +50,7 @@ export default function AnalyticsTracker() {
       })
       .catch(() => {});
 
-    // Send duration on navigation away / tab close
-    return () => {
+    function sendDuration() {
       const duration = Math.round((Date.now() - startTimeRef.current) / 1000);
       const id = recordIdRef.current;
       if (duration > 0 && id) {
@@ -65,7 +68,23 @@ export default function AnalyticsTracker() {
             keepalive: true,
           }).catch(() => {});
         }
+        // Prevent double-sending
+        recordIdRef.current = null;
       }
+    }
+
+    // Send duration when tab is hidden (covers tab close and navigation in SPAs)
+    function onVisibilityChange() {
+      if (document.visibilityState === 'hidden') {
+        sendDuration();
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    // Also send on React cleanup (handles client-side navigation)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      sendDuration();
     };
   }, [pathname]);
 
