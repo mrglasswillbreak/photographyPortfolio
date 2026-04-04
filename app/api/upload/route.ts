@@ -1,47 +1,44 @@
 import { NextResponse } from 'next/server';
-import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
+import { put } from '@vercel/blob';
 import { isAuthenticated } from '@/lib/auth';
 
-const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_SIZE_BYTES = 4 * 1024 * 1024; // 4 MB
 
 export async function POST(request: Request): Promise<Response> {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
-    const body = (await request.json()) as HandleUploadBody;
+    const formData = await request.formData();
+    const file = formData.get('file') as File | null;
 
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async (pathname) => {
-        if (!(await isAuthenticated())) {
-          throw new Error('Unauthorized');
-        }
+    if (!file) {
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    }
 
-        const ext = pathname.split('.').pop()?.toLowerCase() ?? '';
-        const allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-        if (!allowedExts.includes(ext)) {
-          throw new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.');
-        }
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return NextResponse.json(
+        { error: 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.' },
+        { status: 400 }
+      );
+    }
 
-        return {
-          allowedContentTypes: ALLOWED_CONTENT_TYPES,
-          maximumSizeInBytes: MAX_SIZE,
-        };
-      },
-      // onUploadCompleted is intentionally omitted: including it causes the library
-      // to embed a callbackUrl in the client token and Vercel Blob then POSTs back
-      // to that URL after upload. On preview deployments or when the callback URL
-      // cannot be resolved the upload stalls. We don't need the callback for anything
-      // critical, so leaving it out keeps the flow simpler and more reliable.
-    });
+    if (file.size > MAX_SIZE_BYTES) {
+      return NextResponse.json(
+        { error: `File too large. Maximum size is ${MAX_SIZE_BYTES / 1024 / 1024} MB.` },
+        { status: 400 }
+      );
+    }
 
-    return NextResponse.json(jsonResponse);
+    const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+    const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const blob = await put(`uploads/${safeName}`, file, { access: 'public' });
+
+    return NextResponse.json({ url: blob.url });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Upload failed';
-    const isUnauthorized = message === 'Unauthorized';
-    return NextResponse.json(
-      { error: message },
-      { status: isUnauthorized ? 401 : 400 }
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
