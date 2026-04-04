@@ -9,7 +9,10 @@ export async function GET(request: Request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const days = Math.min(parseInt(searchParams.get('days') ?? '30', 10), 365);
+    const rawDays = searchParams.get('days');
+    const parsedDays = parseInt(rawDays ?? '30', 10);
+    const safeDays = Number.isFinite(parsedDays) ? parsedDays : 30;
+    const days = Math.max(1, Math.min(safeDays, 365));
 
     // Overview stats
     const overviewResult = await sql<{ total_views: string; unique_sessions: string; avg_duration: string }>`
