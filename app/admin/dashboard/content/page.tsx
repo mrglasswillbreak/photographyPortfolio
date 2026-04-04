@@ -299,7 +299,7 @@ export default function ContentPage() {
                                   <><Upload className="w-4 h-4" /> {value ? 'Replace Photo' : 'Upload Photo'}</>
                                 )}
                               </button>
-                              <p className="text-xs text-neutral-400 dark:text-neutral-500">JPEG, PNG or WebP · max 10 MB</p>
+                              <p className="text-xs text-neutral-400 dark:text-neutral-500">JPEG, PNG or WebP · max 4 MB</p>
                             </div>
                           </div>
                         </div>
