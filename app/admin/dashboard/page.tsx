@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Images, Layers, Type, ArrowRight } from 'lucide-react';
+import { Images, Layers, Type, ArrowRight, Eye, Users, TrendingUp, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
@@ -10,8 +10,46 @@ interface Stats {
   contentItems: number;
 }
 
+interface AnalyticsSummary {
+  total_views: number;
+  unique_sessions: number;
+  views_over_time: { date: string; count: number }[];
+}
+
+/* ── Mini sparkline ─────────────────────────────────────────────────────── */
+function Sparkline({ data }: { data: { date: string; count: number }[] }) {
+  if (data.length < 2) {
+    return (
+      <p className="text-xs text-neutral-400 dark:text-neutral-600 text-center py-2">
+        No data yet
+      </p>
+    );
+  }
+  const W = 300;
+  const H = 48;
+  const pad = { top: 4, right: 4, bottom: 4, left: 4 };
+  const innerW = W - pad.left - pad.right;
+  const innerH = H - pad.top - pad.bottom;
+  const maxVal = Math.max(...data.map((d) => d.count), 1);
+  const xScale = (i: number) => pad.left + (i / (data.length - 1)) * innerW;
+  const yScale = (v: number) => pad.top + innerH - (v / maxVal) * innerH;
+  const points = data.map((d, i) => `${xScale(i)},${yScale(d.count)}`).join(' ');
+  const areaPoints =
+    `${xScale(0)},${pad.top + innerH} ` +
+    points +
+    ` ${xScale(data.length - 1)},${pad.top + innerH}`;
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-12" aria-label="Views sparkline">
+      <polygon points={areaPoints} fill="#3b82f618" />
+      <polyline points={points} fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats>({ galleryCount: 0, servicesCount: 0, contentItems: 0 });
+  const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -19,13 +57,21 @@ export default function DashboardPage() {
       fetch('/api/gallery').then((r) => r.json()),
       fetch('/api/services').then((r) => r.json()),
       fetch('/api/content').then((r) => r.json()),
+      fetch('/api/analytics?days=7').then((r) => (r.ok ? r.json() : null)).catch(() => null),
     ])
-      .then(([gallery, services, content]) => {
+      .then(([gallery, services, content, analyticsData]) => {
         setStats({
           galleryCount: Array.isArray(gallery) ? gallery.length : 0,
           servicesCount: Array.isArray(services) ? services.length : 0,
           contentItems: typeof content === 'object' ? Object.keys(content).length : 0,
         });
+        if (analyticsData?.overview) {
+          setAnalytics({
+            total_views: analyticsData.overview.total_views ?? 0,
+            unique_sessions: analyticsData.overview.unique_sessions ?? 0,
+            views_over_time: analyticsData.views_over_time ?? [],
+          });
+        }
       })
       .catch(() => {})
       .finally(() => setIsLoading(false));
@@ -50,7 +96,7 @@ export default function DashboardPage() {
         <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Manage your portfolio content</p>
       </div>
 
-      {/* Stats */}
+      {/* Content Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         {cards.map((card, i) => (
           <motion.div
@@ -78,6 +124,55 @@ export default function DashboardPage() {
           </motion.div>
         ))}
       </div>
+
+      {/* Analytics Summary */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="mb-8"
+      >
+        <div className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />
+              <h2 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                Visitor Analytics — Last 7 Days
+              </h2>
+            </div>
+            <Link
+              href="/admin/dashboard/analytics"
+              className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              <BarChart2 className="w-3.5 h-3.5" />
+              Full analytics
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Eye className="w-3.5 h-3.5 text-blue-500" />
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">Page Views</p>
+              </div>
+              <p className="text-2xl font-bold text-neutral-900 dark:text-white tabular-nums">
+                {isLoading ? '–' : (analytics?.total_views ?? 0).toLocaleString()}
+              </p>
+            </div>
+            <div className="bg-neutral-50 dark:bg-neutral-800 rounded-lg p-4">
+              <div className="flex items-center gap-2 mb-1">
+                <Users className="w-3.5 h-3.5 text-purple-500" />
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">Unique Sessions</p>
+              </div>
+              <p className="text-2xl font-bold text-neutral-900 dark:text-white tabular-nums">
+                {isLoading ? '–' : (analytics?.unique_sessions ?? 0).toLocaleString()}
+              </p>
+            </div>
+          </div>
+
+          <Sparkline data={analytics?.views_over_time ?? []} />
+        </div>
+      </motion.div>
 
       {/* Quick Actions */}
       <div className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6">
