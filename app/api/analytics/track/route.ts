@@ -72,7 +72,8 @@ export async function POST(request: Request) {
     const referrer_source = parseReferrer(referrer ?? '');
 
     // Country from Vercel's edge header (available when deployed on Vercel)
-    const country = (request.headers.get('x-vercel-ip-country') ?? '').toUpperCase().slice(0, 10);
+    // x-vercel-ip-country returns ISO 3166-1 alpha-2 codes (2 characters)
+    const country = (request.headers.get('x-vercel-ip-country') ?? '').toUpperCase().slice(0, 2);
 
     const result = await sql<{ id: number }>`
       INSERT INTO page_views (session_id, page_url, referrer_source, device_type, browser, os, country)

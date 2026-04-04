@@ -185,9 +185,9 @@ function LineChart({ data }: { data: { date: string; count: number }[] }) {
 
   // Y-axis ticks
   const yTicks = [0, Math.round(maxVal / 2), maxVal];
-  // X-axis: show ≤MAX_X_LABELS labels
-  const step = Math.ceil(data.length / MAX_X_LABELS);
-  const xLabels = data.filter((_, i) => i % step === 0 || i === data.length - 1);
+  // X-axis: pick up to MAX_X_LABELS evenly spaced indices
+  const step = Math.max(1, Math.ceil(data.length / MAX_X_LABELS));
+  const xLabels = data.filter((_, i) => i % step === 0);
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full" aria-label="Views over time">
