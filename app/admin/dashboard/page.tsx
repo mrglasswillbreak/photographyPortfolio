@@ -98,7 +98,9 @@ export default function DashboardPage() {
       </div>
 
       {/* First-time setup hint — only shown when the database has no content yet */}
-      {!isLoading && stats.contentItems === 0 && (
+      {!isLoading &&
+        (stats.contentItems === 0 ||
+          (stats.galleryCount === 0 && stats.servicesCount === 0 && stats.contentItems === 1)) && (
         <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
           <p className="text-sm text-amber-700 dark:text-amber-300 font-medium">First-time setup</p>
           <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
