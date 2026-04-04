@@ -83,6 +83,21 @@ export async function initializeDatabase() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
+
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_page_views_created_at
+    ON page_views (created_at)
+  `;
+
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_page_views_session_id
+    ON page_views (session_id)
+  `;
+
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_page_views_created_at_session_id
+    ON page_views (created_at, session_id)
+  `;
 }
 
 export async function getContent(section: string, key: string, defaultValue = ''): Promise<string> {

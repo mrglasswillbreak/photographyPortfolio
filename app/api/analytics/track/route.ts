@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 
+// Column size limits (must match lib/db.ts schema)
+const MAX_SESSION_ID = 64;
+const MAX_PAGE_URL = 255;
+const MAX_REFERRER_SOURCE = 100;
+const MAX_DURATION_SECONDS = 86_400; // 24 hours — sanity cap
+
 function parseUserAgent(ua: string): { device_type: string; browser: string; os: string } {
   const isTablet = /ipad|tablet|kindle|playbook/i.test(ua);
   const isMobile = !isTablet && /mobile|android|iphone|ipod/i.test(ua);
@@ -43,7 +49,8 @@ function parseReferrer(referrer: string): string {
     if (/reddit\.com/i.test(host)) return 'Reddit';
     if (/tiktok\.com/i.test(host)) return 'TikTok';
     if (/youtube\.com/i.test(host)) return 'YouTube';
-    return host || 'Other';
+    // Unknown host — truncate to column limit before returning
+    return (host || 'Other').slice(0, MAX_REFERRER_SOURCE);
   } catch {
     return 'Other';
   }
@@ -54,22 +61,46 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     // Duration update for existing record
-    if (body.id && body.duration_seconds !== undefined) {
+    if (body.id !== undefined && body.duration_seconds !== undefined) {
+      const id = typeof body.id === 'number' ? body.id : null;
+      const rawDuration = typeof body.duration_seconds === 'number' ? body.duration_seconds : null;
+      const session_id = typeof body.session_id === 'string' ? body.session_id.slice(0, MAX_SESSION_ID) : null;
+
+      if (
+        id === null ||
+        rawDuration === null ||
+        !Number.isFinite(rawDuration) ||
+        rawDuration < 0 ||
+        session_id === null
+      ) {
+        return NextResponse.json({ error: 'Invalid duration update payload' }, { status: 400 });
+      }
+
+      const duration = Math.min(Math.round(rawDuration), MAX_DURATION_SECONDS);
+
+      // Require session_id to match so clients cannot overwrite arbitrary rows
       await sql`
         UPDATE page_views
-        SET duration_seconds = ${body.duration_seconds}
-        WHERE id = ${body.id}
+        SET duration_seconds = ${duration}
+        WHERE id = ${id} AND session_id = ${session_id}
       `;
       return NextResponse.json({ ok: true });
     }
 
-    const { session_id, page_url, referrer, user_agent } = body;
+    // New page view
+    const session_id =
+      typeof body.session_id === 'string' ? body.session_id.slice(0, MAX_SESSION_ID) : null;
     if (!session_id) {
       return NextResponse.json({ error: 'Missing session_id' }, { status: 400 });
     }
 
-    const { device_type, browser, os } = parseUserAgent(user_agent ?? '');
-    const referrer_source = parseReferrer(referrer ?? '');
+    const page_url =
+      typeof body.page_url === 'string' ? body.page_url.slice(0, MAX_PAGE_URL) || '/' : '/';
+    const referrer_source = parseReferrer(
+      typeof body.referrer === 'string' ? body.referrer : ''
+    );
+    const user_agent = typeof body.user_agent === 'string' ? body.user_agent : '';
+    const { device_type, browser, os } = parseUserAgent(user_agent);
 
     // Country from Vercel's edge header (available when deployed on Vercel)
     // x-vercel-ip-country returns ISO 3166-1 alpha-2 codes (2 characters)
@@ -79,7 +110,7 @@ export async function POST(request: Request) {
       INSERT INTO page_views (session_id, page_url, referrer_source, device_type, browser, os, country)
       VALUES (
         ${session_id},
-        ${(page_url as string).slice(0, 255) || '/'},
+        ${page_url},
         ${referrer_source},
         ${device_type},
         ${browser},
