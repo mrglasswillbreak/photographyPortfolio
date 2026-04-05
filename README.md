@@ -25,7 +25,7 @@ A modern, full-stack photography portfolio built with **Next.js**, **TypeScript*
 - **Dark/Light Mode** - System preference detection with manual toggle
 - **Dynamic Gallery** - Masonry grid populated from the database with category filtering and hover effects
 - **Services Section** - Animated service cards managed via the admin CMS
-- **Contact Form** - Email delivery via Resend with form validation and submission feedback
+- **Contact Form** - Email delivery via Gmail SMTP (Nodemailer) with form validation and submission feedback
 - **About Section** - Photographer bio with editable statistics
 - **Custom Favicon** - Modern camera-aperture icon displayed in browser tabs and bookmarks; fully replaceable from the admin dashboard without redeploying
 
@@ -44,7 +44,7 @@ A modern, full-stack photography portfolio built with **Next.js**, **TypeScript*
 - **Gallery** - Database-driven masonry grid with image hover effects
 - **Services** - Animated service cards sourced from the database
 - **About** - Photographer bio with editable statistics
-- **Contact** - Contact form (powered by Resend) with info cards
+- **Contact** - Contact form (powered by Gmail SMTP / Nodemailer) with info cards
 - **Footer** - Social links and branding
 
 ## 🚀 Getting Started
@@ -55,7 +55,7 @@ A modern, full-stack photography portfolio built with **Next.js**, **TypeScript*
 - npm or yarn
 - A [Neon](https://neon.tech) or Vercel Postgres database
 - A [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) store (for image uploads)
-- A [Resend](https://resend.com) API key (for the contact form)
+- A Gmail account with an [App Password](https://support.google.com/accounts/answer/185833) enabled (for the contact form)
 
 ### Installation
 
@@ -87,9 +87,9 @@ Copy `.env.example` to `.env.local` and set the following:
 | `JWT_SECRET` | Secret used to sign session tokens (`openssl rand -base64 32`) |
 | `DATABASE_URL` or `POSTGRES_URL` | Neon / Vercel Postgres connection string (`POSTGRES_URL` is also supported for legacy or auto-populated Vercel Postgres envs) |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob read/write token |
-| `RESEND_API_KEY` | Resend API key for contact form emails |
+| `GMAIL_USER` | Gmail address used to send contact form emails |
+| `GMAIL_APP_PASSWORD` | Gmail App Password (Google Account → Security → App Passwords) |
 | `CONTACT_EMAIL` | Email address that receives contact form submissions |
-| `FROM_EMAIL` | Sender address used in outgoing emails |
 
 ### Database Initialization
 
@@ -114,7 +114,7 @@ npm start
 | Lucide React | Icons |
 | Neon / Vercel Postgres | Database |
 | Vercel Blob | Image storage |
-| Resend | Transactional email |
+| Nodemailer + Gmail | Transactional email |
 | jose | JWT session management |
 | next-themes | Dark/light mode |
 
@@ -138,7 +138,7 @@ app/
 │   ├── content/        # Content CRUD API
 │   ├── analytics/      # Analytics read & page-view tracking
 │   ├── upload/         # Vercel Blob upload endpoint
-│   ├── contact/        # Contact form → Resend email
+│   ├── contact/        # Contact form → Gmail SMTP email (Nodemailer)
 │   └── seed/           # One-time database seeding
 ├── globals.css
 ├── layout.tsx
