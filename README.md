@@ -11,7 +11,7 @@ A modern, full-stack photography portfolio built with **Next.js**, **TypeScript*
 
 ### Portfolio Site
 
-![Portfolio Site — Hero](public/screenshots/main-site-hero.png)
+![Portfolio Site — Hero](https://github.com/user-attachments/assets/37ec959f-35d7-4fdc-acb7-4c0018024ef5)
 
 ### Admin Dashboard
 
@@ -27,6 +27,7 @@ A modern, full-stack photography portfolio built with **Next.js**, **TypeScript*
 - **Services Section** - Animated service cards managed via the admin CMS
 - **Contact Form** - Email delivery via Resend with form validation and submission feedback
 - **About Section** - Photographer bio with editable statistics
+- **Custom Favicon** - Modern camera-aperture icon displayed in browser tabs and bookmarks; fully replaceable from the admin dashboard without redeploying
 
 ### Admin CMS (`/admin`)
 - **JWT Authentication** - Secure login with httpOnly session cookies and middleware-enforced route protection
@@ -34,6 +35,8 @@ A modern, full-stack photography portfolio built with **Next.js**, **TypeScript*
 - **Content Editor** - Edit all portfolio text (hero, gallery, about, contact, site settings) section by section without touching code
 - **Services Manager** - Add, edit, reorder, and delete services shown on the portfolio
 - **Overview Dashboard** - At-a-glance stats for gallery images, services, and content fields with quick-action links
+- **Analytics** - 7-day visitor stats with page views, unique sessions, device types, and a sparkline trend chart
+- **Favicon Manager** - Upload a custom PNG/WebP favicon from the Settings page; changes take effect site-wide within minutes with no redeployment required; reset to the default camera-aperture icon at any time
 
 ## 🖼️ Sections
 
@@ -124,12 +127,16 @@ app/
 │   └── dashboard/
 │       ├── gallery/    # Gallery manager (upload, edit, delete images)
 │       ├── content/    # Site content editor (all text fields)
-│       └── services/   # Services manager
+│       ├── services/   # Services manager
+│       ├── analytics/  # Visitor analytics (7-day stats, sparkline chart)
+│       └── settings/   # Site settings — favicon upload & management
 ├── api/
 │   ├── auth/           # Login & logout endpoints
+│   ├── favicon/        # Dynamic favicon route (serves custom or default)
 │   ├── gallery/        # Gallery CRUD API
 │   ├── services/       # Services CRUD API
 │   ├── content/        # Content CRUD API
+│   ├── analytics/      # Analytics read & page-view tracking
 │   ├── upload/         # Vercel Blob upload endpoint
 │   ├── contact/        # Contact form → Resend email
 │   └── seed/           # One-time database seeding
@@ -139,7 +146,7 @@ app/
 components/
 ├── layout/             # Layout, Navbar
 ├── sections/           # Hero, Gallery, Services, About, Contact, Footer
-└── ui/                 # ThemeToggle
+└── ui/                 # ThemeToggle, AnalyticsTracker, SocialIcons
 lib/
 ├── auth.ts             # JWT helpers & credential check
 ├── db.ts               # Database client & queries
