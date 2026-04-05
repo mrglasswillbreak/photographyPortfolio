@@ -7,7 +7,7 @@ import { getContent } from '@/lib/db';
 // Short TTL so a newly-uploaded favicon is visible within minutes.
 const CACHE_CONTROL = 'public, max-age=600, stale-while-revalidate=3600';
 
-export async function GET(): Promise<Response> {
+export async function GET(request: Request): Promise<Response> {
   const customUrl = await getContent('site', 'favicon_url', '');
 
   if (customUrl) {
@@ -18,11 +18,32 @@ export async function GET(): Promise<Response> {
     if (blobPathMatch) {
       const blobPathname = blobPathMatch[1];
 
-      // Only allow blobs under the uploads/ directory.
-      if (blobPathname.startsWith('uploads/')) {
+      // Normalize the path and reject any traversal attempts (e.g. uploads/../other).
+      const normalizedPathname = path.posix.normalize(blobPathname);
+
+      if (
+        normalizedPathname.startsWith('uploads/') &&
+        !normalizedPathname.split('/').includes('..')
+      ) {
         try {
-          const result = await get(blobPathname, { access: 'private' });
+          const ifNoneMatch = request.headers.get('if-none-match') ?? undefined;
+          const result = await get(normalizedPathname, {
+            access: 'private',
+            ...(ifNoneMatch ? { ifNoneMatch } : {}),
+          });
+
           if (result) {
+            // Blob hasn't changed since the client last fetched it.
+            if (result.statusCode === 304) {
+              return new NextResponse(null, {
+                status: 304,
+                headers: {
+                  'Cache-Control': CACHE_CONTROL,
+                  ...(result.blob.etag ? { ETag: result.blob.etag } : {}),
+                },
+              });
+            }
+
             const headers: Record<string, string> = {
               'Content-Type': result.blob.contentType ?? 'image/png',
               'Cache-Control': CACHE_CONTROL,
