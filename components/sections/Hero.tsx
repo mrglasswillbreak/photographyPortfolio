@@ -60,10 +60,8 @@ function Hero() {
         transition={{ duration: 1.5, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="absolute inset-0 z-0"
       >
-        <div className="absolute inset-0">
-          <Image src={content.image} alt="Hero background" fill priority className="object-cover object-center" sizes="100vw" />
-          <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
-        </div>
+        <Image src={content.image} alt="Hero background" fill priority className="object-cover object-center" sizes="100vw" />
+        <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
       </motion.div>
 
       <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
