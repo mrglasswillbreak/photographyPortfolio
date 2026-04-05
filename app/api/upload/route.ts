@@ -1,47 +1,95 @@
 import { NextResponse } from 'next/server';
-import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
+import { put } from '@vercel/blob';
 import { isAuthenticated } from '@/lib/auth';
 
-const ALLOWED_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_SIZE_BYTES = 4 * 1024 * 1024; // 4 MB
+
+// Map validated MIME types to canonical extensions for consistent blob key naming.
+const MIME_TO_EXT: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+};
+
+// Magic-byte signatures for each supported image format.
+// We read the first 12 bytes of the file and check that the bytes match at least
+// one of the expected signatures before uploading to storage.
+const MAGIC_BYTES: Array<{ mime: string; offset: number; bytes: number[] }> = [
+  { mime: 'image/jpeg', offset: 0, bytes: [0xff, 0xd8, 0xff] },
+  { mime: 'image/png', offset: 0, bytes: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] },
+  { mime: 'image/gif', offset: 0, bytes: [0x47, 0x49, 0x46, 0x38] }, // GIF8
+  { mime: 'image/webp', offset: 8, bytes: [0x57, 0x45, 0x42, 0x50] }, // RIFF????WEBP
+];
+
+async function matchesMagicBytes(file: File): Promise<boolean> {
+  const header = await file.slice(0, 12).arrayBuffer();
+  const bytes = new Uint8Array(header);
+  return MAGIC_BYTES.some(({ mime, offset, bytes: sig }) =>
+    file.type === mime && sig.every((b, i) => bytes[offset + i] === b)
+  );
+}
 
 export async function POST(request: Request): Promise<Response> {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  let file: File;
   try {
-    const body = (await request.json()) as HandleUploadBody;
+    const formData = await request.formData();
+    const value = formData.get('file');
 
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async (pathname) => {
-        if (!(await isAuthenticated())) {
-          throw new Error('Unauthorized');
-        }
+    if (value === null) {
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    }
+    if (!(value instanceof File)) {
+      return NextResponse.json({ error: 'Invalid file field' }, { status: 400 });
+    }
+    file = value;
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+  }
 
-        const ext = pathname.split('.').pop()?.toLowerCase() ?? '';
-        const allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-        if (!allowedExts.includes(ext)) {
-          throw new Error('Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.');
-        }
-
-        return {
-          allowedContentTypes: ALLOWED_CONTENT_TYPES,
-          maximumSizeInBytes: MAX_SIZE,
-        };
-      },
-      // onUploadCompleted is intentionally omitted: including it causes the library
-      // to embed a callbackUrl in the client token and Vercel Blob then POSTs back
-      // to that URL after upload. On preview deployments or when the callback URL
-      // cannot be resolved the upload stalls. We don't need the callback for anything
-      // critical, so leaving it out keeps the flow simpler and more reliable.
-    });
-
-    return NextResponse.json(jsonResponse);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Upload failed';
-    const isUnauthorized = message === 'Unauthorized';
+  if (!ALLOWED_TYPES.includes(file.type)) {
     return NextResponse.json(
-      { error: message },
-      { status: isUnauthorized ? 401 : 400 }
+      { error: 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.' },
+      { status: 400 }
     );
+  }
+
+  if (file.size > MAX_SIZE_BYTES) {
+    return NextResponse.json(
+      { error: `File too large. Maximum size is ${MAX_SIZE_BYTES / 1024 / 1024} MB.` },
+      { status: 400 }
+    );
+  }
+
+  if (!(await matchesMagicBytes(file))) {
+    return NextResponse.json(
+      { error: 'File contents do not match the declared image type.' },
+      { status: 400 }
+    );
+  }
+
+  try {
+    // Derive the extension from the validated MIME type (not the client-supplied
+    // filename) so blob keys are always consistent and safe.
+    const ext = MIME_TO_EXT[file.type] ?? 'jpg';
+    const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const blob = await put(`uploads/${safeName}`, file, { access: 'private' });
+
+    // Return a proxy URL so the image can be served publicly via the server-side
+    // image route, regardless of the store's access configuration.
+    return NextResponse.json({ url: `/api/images/${blob.pathname}` });
+  } catch (error) {
+    console.error('Upload failed:', error);
+
+    const message =
+      process.env.NODE_ENV !== 'production' && error instanceof Error
+        ? error.message
+        : 'Upload failed';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
