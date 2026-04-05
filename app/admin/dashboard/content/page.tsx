@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Save, Loader2, Check, ChevronDown, ChevronRight, Upload, X } from 'lucide-react';
-import { SOCIAL_PLATFORMS } from '@/components/ui/SocialIcons';
 
 interface Section {
   id: string;
@@ -15,6 +14,7 @@ const SECTIONS: Section[] = [
     id: 'hero',
     label: 'Hero Section',
     fields: [
+      { key: 'image', label: 'Hero Background Image', type: 'image' },
       { key: 'tagline', label: 'Tagline (small text above title)' },
       { key: 'title', label: 'Hero Title' },
       { key: 'title_highlight', label: 'Hero Title Highlight (italic bold)' },
@@ -59,27 +59,7 @@ const SECTIONS: Section[] = [
       { key: 'location', label: 'Location' },
     ],
   },
-  {
-    id: 'site',
-    label: 'Site Settings',
-    fields: [
-      { key: 'name', label: 'Site Name' },
-      { key: 'footer_text', label: 'Footer Text' },
-    ],
-  },
 ];
-
-const SOCIAL_PLACEHOLDERS: Record<string, string> = {
-  instagram: 'https://instagram.com/yourprofile',
-  facebook: 'https://facebook.com/yourpage',
-  twitter: 'https://x.com/yourhandle',
-  tiktok: 'https://tiktok.com/@yourhandle',
-  snapchat: 'https://snapchat.com/add/yourusername',
-  youtube: 'https://youtube.com/@yourchannel',
-  linkedin: 'https://linkedin.com/in/yourprofile',
-};
-
-const FOOTER_SECTION_ID = 'footer';
 
 export default function ContentPage() {
   const [content, setContent] = useState<Record<string, string>>({});
@@ -170,31 +150,6 @@ export default function ContentPage() {
     [content]
   );
 
-  const saveFooterLinks = useCallback(async () => {
-    setSavingSection(FOOTER_SECTION_ID);
-    setError('');
-    try {
-      const updates: Record<string, string> = {};
-      for (const platform of SOCIAL_PLATFORMS) {
-        updates[`${platform.id}_url`] = content[`${FOOTER_SECTION_ID}_${platform.id}_url`] ?? '';
-      }
-
-      const res = await fetch(`/api/content/${FOOTER_SECTION_ID}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      });
-
-      if (!res.ok) throw new Error('Failed to save');
-      setSavedSection(FOOTER_SECTION_ID);
-      setTimeout(() => setSavedSection(null), 2000);
-    } catch {
-      setError('Failed to save footer links');
-    } finally {
-      setSavingSection(null);
-    }
-  }, [content]);
-
   const toggleSection = useCallback((sectionId: string) => {
     setExpandedSections((prev) => {
       const next = new Set(prev);
@@ -222,7 +177,7 @@ export default function ContentPage() {
       />
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white">Content</h1>
-        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Edit all text displayed on your portfolio</p>
+        <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">Edit text and images displayed on your portfolio</p>
       </div>
 
       {error && (
@@ -350,79 +305,6 @@ export default function ContentPage() {
             </motion.div>
           );
         })}
-
-        {/* Footer Social Links */}
-        <motion.div
-          layout
-          className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden"
-        >
-          <button
-            onClick={() => toggleSection(FOOTER_SECTION_ID)}
-            className="w-full flex items-center justify-between p-5 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
-          >
-            <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Footer Social Links</h2>
-            {expandedSections.has(FOOTER_SECTION_ID) ? (
-              <ChevronDown className="w-4 h-4 text-neutral-400" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-neutral-400" />
-            )}
-          </button>
-
-          {expandedSections.has(FOOTER_SECTION_ID) && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="px-5 pb-5 space-y-4"
-            >
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                Enter the full URL for each social platform you want to show. Leave blank to hide the icon.
-              </p>
-              {SOCIAL_PLATFORMS.map(({ id, label, Icon }) => {
-                const contentKey = `${FOOTER_SECTION_ID}_${id}_url`;
-                const value = content[contentKey] ?? '';
-                return (
-                  <div key={id}>
-                    <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
-                      {label} URL
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
-                        <Icon className="w-4 h-4" />
-                      </span>
-                      <input
-                        type="url"
-                        value={value}
-                        placeholder={SOCIAL_PLACEHOLDERS[id] ?? `https://${id}.com/yourprofile`}
-                        onChange={(e) => setContent((prev) => ({ ...prev, [contentKey]: e.target.value }))}
-                        className="flex-1 px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-
-              <div className="flex items-center gap-3 pt-2">
-                <button
-                  onClick={saveFooterLinks}
-                  disabled={savingSection === FOOTER_SECTION_ID}
-                  className="flex items-center gap-2 px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-                >
-                  {savingSection === FOOTER_SECTION_ID ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Save className="w-4 h-4" />
-                  )}
-                  Save Links
-                </button>
-                {savedSection === FOOTER_SECTION_ID && (
-                  <motion.span initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
-                    <Check className="w-4 h-4" /> Saved!
-                  </motion.span>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </motion.div>
       </div>
     </div>
   );
