@@ -44,6 +44,16 @@ export default function GalleryManagerPage() {
   const [error, setError] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Holds the in-flight XHR so it can be aborted on unmount or before a new upload.
+  const xhrRef = useRef<XMLHttpRequest | null>(null);
+
+  // Abort any in-flight upload when the component unmounts to prevent state
+  // updates on an unmounted component.
+  useEffect(() => {
+    return () => {
+      xhrRef.current?.abort();
+    };
+  }, []);
 
   const loadImages = useCallback(async () => {
     try {
@@ -63,6 +73,10 @@ export default function GalleryManagerPage() {
 
   const uploadFile = useCallback(async (file: File) => {
     if (!file) return;
+
+    // Abort any previous in-flight upload before starting a new one.
+    xhrRef.current?.abort();
+
     setUploading(true);
     setUploadProgress(0);
     setError('');
@@ -75,6 +89,7 @@ export default function GalleryManagerPage() {
       // to the server. fetch() doesn't expose upload progress.
       const blobUrl = await new Promise<string>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
+        xhrRef.current = xhr;
 
         xhr.upload.onprogress = (event) => {
           if (event.lengthComputable) {
@@ -85,6 +100,7 @@ export default function GalleryManagerPage() {
         };
 
         xhr.onload = () => {
+          xhrRef.current = null;
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const data = JSON.parse(xhr.responseText) as { url?: string; error?: string };
@@ -106,8 +122,9 @@ export default function GalleryManagerPage() {
           }
         };
 
-        xhr.onerror = () => reject(new Error('Upload failed. Check your connection.'));
-        xhr.ontimeout = () => reject(new Error('Upload timed out. Try again or check your connection.'));
+        xhr.onerror = () => { xhrRef.current = null; reject(new Error('Upload failed. Check your connection.')); };
+        xhr.onabort = () => { xhrRef.current = null; reject(new Error('Upload cancelled.')); };
+        xhr.ontimeout = () => { xhrRef.current = null; reject(new Error('Upload timed out. Try again or check your connection.')); };
         xhr.timeout = 300_000; // 5 minutes
 
         xhr.open('POST', '/api/upload');
@@ -133,8 +150,10 @@ export default function GalleryManagerPage() {
       if (err instanceof Error && err.name === 'TimeoutError') {
         // AbortSignal.timeout() on the gallery POST throws a TimeoutError DOMException
         setError('Connection timed out while saving. Please try again.');
-      } else {
-        setError(err instanceof Error ? err.message : 'Upload failed');
+      } else if (err instanceof Error && err.message !== 'Upload cancelled.') {
+        setError(err.message);
+      } else if (!(err instanceof Error)) {
+        setError('Upload failed');
       }
     } finally {
       setUploading(false);
