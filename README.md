@@ -23,7 +23,7 @@ A modern, full-stack photography portfolio built with **Next.js**, **TypeScript*
 - **Luxurious Animations** - Smooth entrance and transition effects powered by Framer Motion
 - **Responsive Design** - Fully mobile and desktop friendly
 - **Dark/Light Mode** - System preference detection with manual toggle
-- **Dynamic Gallery** - Masonry grid populated from the database with category filtering and hover effects
+- **Dynamic Gallery** - Masonry grid populated from the database with category filtering, hover effects, skeleton loading states, and a zoomable image lightbox
 - **Services Section** - Animated service cards managed via the admin CMS
 - **Contact Form** - Email delivery via Gmail SMTP (Nodemailer) with form validation and submission feedback
 - **About Section** - Photographer bio with editable statistics
@@ -88,7 +88,7 @@ Copy `.env.example` to `.env.local` and set the following:
 | `DATABASE_URL` or `POSTGRES_URL` | Neon / Vercel Postgres connection string (`POSTGRES_URL` is also supported for legacy or auto-populated Vercel Postgres envs) |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob read/write token |
 | `GMAIL_USER` | Gmail address used to send contact form emails |
-| `GMAIL_APP_PASSWORD` | Gmail App Password (Google Account → Security → App Passwords) |
+| `GMAIL_APP_PASSWORD` | Gmail App Password (Google Account → Security → App Passwords). Paste it exactly as Google shows it — spaces are stripped automatically |
 | `CONTACT_EMAIL` | Email address that receives contact form submissions |
 
 ### Database Initialization
@@ -115,6 +115,7 @@ npm start
 | Neon / Vercel Postgres | Database |
 | Vercel Blob | Image storage |
 | Nodemailer + Gmail | Transactional email |
+| @vercel/analytics | Built-in Vercel Analytics (public pages only) |
 | jose | JWT session management |
 | next-themes | Dark/light mode |
 
@@ -137,6 +138,7 @@ app/
 │   ├── services/       # Services CRUD API
 │   ├── content/        # Content CRUD API
 │   ├── analytics/      # Analytics read & page-view tracking
+│   ├── images/         # Private Vercel Blob image proxy (caching, access control)
 │   ├── upload/         # Vercel Blob upload endpoint
 │   ├── contact/        # Contact form → Gmail SMTP email (Nodemailer)
 │   └── seed/           # One-time database seeding
@@ -146,7 +148,7 @@ app/
 components/
 ├── layout/             # Layout, Navbar
 ├── sections/           # Hero, Gallery, Services, About, Contact, Footer
-└── ui/                 # ThemeToggle, AnalyticsTracker, SocialIcons
+└── ui/                 # ThemeToggle, AnalyticsTracker, SocialIcons, ImageLightbox, Skeleton, VercelAnalytics
 lib/
 ├── auth.ts             # JWT helpers & credential check
 ├── db.ts               # Database client & queries
