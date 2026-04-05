@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTheme } from 'next-themes';
 import { motion } from 'framer-motion';
-import { Upload, RotateCcw, Check, Loader2, Aperture, Sun, Moon, Monitor, Save, Link2 } from 'lucide-react';
+import { Upload, RotateCcw, Check, Loader2, Aperture, Sun, Moon, Monitor, Save, Link2, Mail } from 'lucide-react';
 import { SOCIAL_PLATFORMS } from '@/components/ui/SocialIcons';
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -320,11 +320,59 @@ export default function SettingsPage() {
           </div>
         </motion.div>
 
-        {/* ── Footer Social Links ──────────────────────────────────────── */}
+        {/* ── Contact Settings ─────────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
+          className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <Mail className="w-4 h-4 text-neutral-500" />
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Contact</h2>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
+                Contact Form Recipient Email
+              </label>
+              <input
+                type="email"
+                value={content['contact_recipient_email'] ?? ''}
+                onChange={(e) => handleChange('contact_recipient_email', e.target.value)}
+                placeholder="you@example.com"
+                className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
+              />
+              <p className="mt-1.5 text-xs text-neutral-400 dark:text-neutral-500">
+                Messages from the contact form will be sent to this address. Leave blank to use the{' '}
+                <code className="bg-neutral-100 dark:bg-neutral-800 px-1 rounded">CONTACT_EMAIL</code>{' '}
+                environment variable.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => saveSection('contact', ['recipient_email'])}
+                disabled={savingSection === 'contact'}
+                className="flex items-center gap-2 px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+              >
+                {savingSection === 'contact' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                Save
+              </button>
+              {savedSection === 'contact' && (
+                <motion.span initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
+                  <Check className="w-4 h-4" /> Saved!
+                </motion.span>
+              )}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ── Footer Social Links ──────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
           className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
         >
           <div className="flex items-center gap-3 mb-5">
@@ -380,7 +428,7 @@ export default function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={{ delay: 0.2 }}
           className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
         >
           <div className="flex items-center gap-3 mb-5">
