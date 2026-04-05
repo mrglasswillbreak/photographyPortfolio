@@ -5,9 +5,10 @@ import { ChevronDown } from 'lucide-react';
 import { fadeIn, fadeInUp } from '@/utils/animations';
 import { HeroSkeleton } from '@/components/ui/Skeleton';
 
-const HERO_IMAGE = 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1920&q=80';
+const DEFAULT_HERO_IMAGE = 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1920&q=80';
 
 interface HeroContent {
+  image: string;
   tagline: string;
   title: string;
   title_highlight: string;
@@ -17,6 +18,7 @@ interface HeroContent {
 }
 
 const DEFAULTS: HeroContent = {
+  image: DEFAULT_HERO_IMAGE,
   tagline: 'Professional Photography',
   title: "Capturing Life's",
   title_highlight: 'Beautiful Moments',
@@ -34,6 +36,7 @@ function Hero() {
       .then((r) => r.json())
       .then((data) => {
         setContent({
+          image: data.hero_image || DEFAULTS.image,
           tagline: data.hero_tagline || DEFAULTS.tagline,
           title: data.hero_title || DEFAULTS.title,
           title_highlight: data.hero_title_highlight || DEFAULTS.title_highlight,
@@ -56,7 +59,7 @@ function Hero() {
         transition={{ duration: 1.5, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="absolute inset-0 z-0"
       >
-        <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${HERO_IMAGE})` }} />
+        <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${content.image})` }} />
         <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
       </motion.div>
 

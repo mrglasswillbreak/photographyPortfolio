@@ -1,29 +1,55 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTheme } from 'next-themes';
 import { motion } from 'framer-motion';
-import { Upload, RotateCcw, Check, Loader2, Aperture } from 'lucide-react';
+import { Upload, RotateCcw, Check, Loader2, Aperture, Sun, Moon, Monitor, Save, Link2 } from 'lucide-react';
+import { SOCIAL_PLATFORMS } from '@/components/ui/SocialIcons';
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE = 4 * 1024 * 1024;
 
+const SOCIAL_PLACEHOLDERS: Record<string, string> = {
+  instagram: 'https://instagram.com/yourprofile',
+  facebook: 'https://facebook.com/yourpage',
+  twitter: 'https://x.com/yourhandle',
+  tiktok: 'https://tiktok.com/@yourhandle',
+  snapchat: 'https://snapchat.com/add/yourusername',
+  youtube: 'https://youtube.com/@yourchannel',
+  linkedin: 'https://linkedin.com/in/yourprofile',
+};
+
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme();
+
+  // All content loaded from /api/content
+  const [content, setContent] = useState<Record<string, string>>({});
   const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Favicon states
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [faviconSaved, setFaviconSaved] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
-  const [error, setError] = useState('');
   const [previewKey, setPreviewKey] = useState(0);
+
+  // Site settings / footer links save states
+  const [savingSection, setSavingSection] = useState<string | null>(null);
+  const [savedSection, setSavedSection] = useState<string | null>(null);
+
+  const [error, setError] = useState('');
+
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const faviconSavedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sectionSavedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     fetch('/api/content')
       .then((r) => r.json())
       .then((data: Record<string, string>) => {
+        setContent(data);
         setFaviconUrl(data['site_favicon_url'] || null);
       })
       .catch(() => setError('Failed to load settings'))
@@ -33,10 +59,13 @@ export default function SettingsPage() {
   // Clear any pending toast timers when the component unmounts.
   useEffect(() => {
     return () => {
-      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+      if (faviconSavedTimerRef.current) clearTimeout(faviconSavedTimerRef.current);
       if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+      if (sectionSavedTimerRef.current) clearTimeout(sectionSavedTimerRef.current);
     };
   }, []);
+
+  // ── Favicon handlers ──────────────────────────────────────────────────────
 
   const handleFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,9 +105,9 @@ export default function SettingsPage() {
 
         setFaviconUrl(url);
         setPreviewKey((k) => k + 1);
-        setSaved(true);
-        if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
-        savedTimerRef.current = setTimeout(() => setSaved(false), 2500);
+        setFaviconSaved(true);
+        if (faviconSavedTimerRef.current) clearTimeout(faviconSavedTimerRef.current);
+        faviconSavedTimerRef.current = setTimeout(() => setFaviconSaved(false), 2500);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to update favicon');
       } finally {
@@ -89,7 +118,7 @@ export default function SettingsPage() {
     []
   );
 
-  const handleReset = useCallback(async () => {
+  const handleFaviconReset = useCallback(async () => {
     setError('');
     setIsResetting(true);
     try {
@@ -111,6 +140,63 @@ export default function SettingsPage() {
     }
   }, []);
 
+  // ── Site settings + footer links handlers ────────────────────────────────
+
+  const handleChange = useCallback((key: string, value: string) => {
+    setContent((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const saveSection = useCallback(
+    async (sectionId: string, fields: string[]) => {
+      setSavingSection(sectionId);
+      setError('');
+      try {
+        const updates: Record<string, string> = {};
+        for (const key of fields) {
+          updates[key] = content[`${sectionId}_${key}`] ?? '';
+        }
+        const res = await fetch(`/api/content/${sectionId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        });
+        if (!res.ok) throw new Error('Failed to save');
+        setSavedSection(sectionId);
+        if (sectionSavedTimerRef.current) clearTimeout(sectionSavedTimerRef.current);
+        sectionSavedTimerRef.current = setTimeout(() => setSavedSection(null), 2000);
+      } catch {
+        setError(`Failed to save ${sectionId} settings`);
+      } finally {
+        setSavingSection(null);
+      }
+    },
+    [content]
+  );
+
+  const saveFooterLinks = useCallback(async () => {
+    setSavingSection('footer');
+    setError('');
+    try {
+      const updates: Record<string, string> = {};
+      for (const platform of SOCIAL_PLATFORMS) {
+        updates[`${platform.id}_url`] = content[`footer_${platform.id}_url`] ?? '';
+      }
+      const res = await fetch('/api/content/footer', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) throw new Error('Failed to save');
+      setSavedSection('footer');
+      if (sectionSavedTimerRef.current) clearTimeout(sectionSavedTimerRef.current);
+      sectionSavedTimerRef.current = setTimeout(() => setSavedSection(null), 2000);
+    } catch {
+      setError('Failed to save footer links');
+    } finally {
+      setSavingSection(null);
+    }
+  }, [content]);
+
   if (isLoading) {
     return (
       <div className="p-6 lg:p-8 flex items-center justify-center min-h-64">
@@ -119,7 +205,7 @@ export default function SettingsPage() {
     );
   }
 
-  const isBusy = isUploading || isSaving || isResetting;
+  const isFaviconBusy = isUploading || isSaving || isResetting;
 
   return (
     <div className="p-6 lg:p-8 max-w-2xl mx-auto">
@@ -134,7 +220,7 @@ export default function SettingsPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-neutral-900 dark:text-white">Settings</h1>
         <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-          Manage site-wide settings such as the favicon
+          Manage site-wide settings
         </p>
       </div>
 
@@ -144,88 +230,237 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
-      >
-        <div className="flex items-center gap-3 mb-5">
-          <Aperture className="w-4 h-4 text-neutral-500" />
-          <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Favicon</h2>
-        </div>
+      <div className="space-y-4">
+        {/* ── Appearance ───────────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <Sun className="w-4 h-4 text-neutral-500" />
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Appearance</h2>
+          </div>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
+            Choose the colour scheme for your admin dashboard.
+          </p>
+          <div className="flex items-center gap-2">
+            {([
+              { value: 'light', label: 'Light', Icon: Sun },
+              { value: 'system', label: 'System', Icon: Monitor },
+              { value: 'dark', label: 'Dark', Icon: Moon },
+            ] as const).map(({ value, label, Icon }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setTheme(value)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  theme === value
+                    ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 border-neutral-900 dark:border-white'
+                    : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+              </button>
+            ))}
+          </div>
+        </motion.div>
 
-        <div className="flex items-start gap-6">
-          {/* Preview */}
-          <div className="flex-shrink-0 flex flex-col items-center gap-2">
-            <div className="w-16 h-16 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 flex items-center justify-center overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                key={previewKey}
-                src={`/api/favicon?v=${previewKey}`}
-                alt="Current favicon"
-                className="w-10 h-10 object-contain"
+        {/* ── Site Settings ────────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <Save className="w-4 h-4 text-neutral-500" />
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Site Settings</h2>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
+                Site Name
+              </label>
+              <input
+                type="text"
+                value={content['site_name'] ?? ''}
+                onChange={(e) => handleChange('site_name', e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
               />
             </div>
-            <span className="text-xs text-neutral-400 dark:text-neutral-500">Current</span>
-          </div>
-
-          {/* Controls */}
-          <div className="flex-1 space-y-3">
-            <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              {faviconUrl
-                ? 'A custom favicon is active. Upload a new one to replace it, or reset to the default.'
-                : 'No custom favicon set. The default camera-aperture icon is being used.'}
-            </p>
-
-            <div className="flex flex-wrap items-center gap-3">
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
+                Footer Text
+              </label>
+              <input
+                type="text"
+                value={content['site_footer_text'] ?? ''}
+                onChange={(e) => handleChange('site_footer_text', e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
+              />
+            </div>
+            <div className="flex items-center gap-3 pt-1">
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isBusy}
+                onClick={() => saveSection('site', ['name', 'footer_text'])}
+                disabled={savingSection === 'site'}
                 className="flex items-center gap-2 px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
               >
-                {isUploading || isSaving ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Upload className="w-4 h-4" />
-                )}
-                {isUploading ? 'Uploading…' : isSaving ? 'Saving…' : faviconUrl ? 'Replace Favicon' : 'Upload Favicon'}
+                {savingSection === 'site' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                Save
               </button>
-
-              {faviconUrl && (
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  disabled={isBusy}
-                  className="flex items-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
-                >
-                  {isResetting ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <RotateCcw className="w-4 h-4" />
-                  )}
-                  Reset to Default
-                </button>
-              )}
-
-              {(saved || resetSuccess) && (
-                <motion.span
-                  initial={{ opacity: 0, x: -5 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400"
-                >
-                  <Check className="w-4 h-4" />
-                  {saved ? 'Favicon updated!' : 'Reset to default!'}
+              {savedSection === 'site' && (
+                <motion.span initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
+                  <Check className="w-4 h-4" /> Saved!
                 </motion.span>
               )}
             </div>
-
-            <p className="text-xs text-neutral-400 dark:text-neutral-500">
-              JPEG, PNG or WebP · max 4 MB · displayed in browser tabs and bookmarks
-            </p>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+
+        {/* ── Footer Social Links ──────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <Link2 className="w-4 h-4 text-neutral-500" />
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Footer Social Links</h2>
+          </div>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-4">
+            Enter the full URL for each social platform you want to show. Leave blank to hide the icon.
+          </p>
+          <div className="space-y-4">
+            {SOCIAL_PLATFORMS.map(({ id, label, Icon }) => {
+              const key = `footer_${id}_url`;
+              return (
+                <div key={id}>
+                  <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
+                    {label} URL
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300">
+                      <Icon className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="url"
+                      value={content[key] ?? ''}
+                      placeholder={SOCIAL_PLACEHOLDERS[id] ?? `https://${id}.com/yourprofile`}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                      className="flex-1 px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
+                    />
+                  </div>
+                </div>
+              );
+            })}
+            <div className="flex items-center gap-3 pt-1">
+              <button
+                type="button"
+                onClick={saveFooterLinks}
+                disabled={savingSection === 'footer'}
+                className="flex items-center gap-2 px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+              >
+                {savingSection === 'footer' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                Save Links
+              </button>
+              {savedSection === 'footer' && (
+                <motion.span initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
+                  <Check className="w-4 h-4" /> Saved!
+                </motion.span>
+              )}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ── Favicon ─────────────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <Aperture className="w-4 h-4 text-neutral-500" />
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Favicon</h2>
+          </div>
+
+          <div className="flex items-start gap-6">
+            {/* Preview */}
+            <div className="flex-shrink-0 flex flex-col items-center gap-2">
+              <div className="w-16 h-16 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 flex items-center justify-center overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  key={previewKey}
+                  src={`/api/favicon?v=${previewKey}`}
+                  alt="Current favicon"
+                  className="w-10 h-10 object-contain"
+                />
+              </div>
+              <span className="text-xs text-neutral-400 dark:text-neutral-500">Current</span>
+            </div>
+
+            {/* Controls */}
+            <div className="flex-1 space-y-3">
+              <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                {faviconUrl
+                  ? 'A custom favicon is active. Upload a new one to replace it, or reset to the default.'
+                  : 'No custom favicon set. The default camera-aperture icon is being used.'}
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isFaviconBusy}
+                  className="flex items-center gap-2 px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                >
+                  {isUploading || isSaving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4" />
+                  )}
+                  {isUploading ? 'Uploading…' : isSaving ? 'Saving…' : faviconUrl ? 'Replace Favicon' : 'Upload Favicon'}
+                </button>
+
+                {faviconUrl && (
+                  <button
+                    type="button"
+                    onClick={handleFaviconReset}
+                    disabled={isFaviconBusy}
+                    className="flex items-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                  >
+                    {isResetting ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <RotateCcw className="w-4 h-4" />
+                    )}
+                    Reset to Default
+                  </button>
+                )}
+
+                {(faviconSaved || resetSuccess) && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -5 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400"
+                  >
+                    <Check className="w-4 h-4" />
+                    {faviconSaved ? 'Favicon updated!' : 'Reset to default!'}
+                  </motion.span>
+                )}
+              </div>
+
+              <p className="text-xs text-neutral-400 dark:text-neutral-500">
+                JPEG, PNG or WebP · max 4 MB · displayed in browser tabs and bookmarks
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 }
