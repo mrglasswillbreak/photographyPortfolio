@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { getContent } from '@/lib/db';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -18,7 +19,6 @@ export async function POST(request: Request) {
     }
 
     const resendKey = process.env.RESEND_API_KEY;
-    const contactEmail = process.env.CONTACT_EMAIL;
     const configuredFromEmail = process.env.FROM_EMAIL;
     const fallbackFromEmail = 'Portfolio Contact <onboarding@resend.dev>';
     const fromEmail = configuredFromEmail || fallbackFromEmail;
@@ -29,8 +29,12 @@ export async function POST(request: Request) {
       );
     }
 
+    // Prefer the DB-stored recipient email; fall back to the env var.
+    const dbRecipientEmail = await getContent('contact', 'recipient_email').catch(() => '');
+    const contactEmail = dbRecipientEmail.trim() || process.env.CONTACT_EMAIL;
+
     if (!resendKey || !contactEmail) {
-      console.error('Email not configured: RESEND_API_KEY or CONTACT_EMAIL missing');
+      console.error('Email not configured: RESEND_API_KEY or recipient email missing');
       return NextResponse.json(
         { error: 'Contact form is not configured. Please try again later.' },
         { status: 503 }

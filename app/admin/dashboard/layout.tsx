@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Images, Type, Layers, LayoutDashboard, LogOut, Menu, X, Camera, ExternalLink, BarChart2 } from 'lucide-react';
+import { Images, Type, Layers, LayoutDashboard, LogOut, Menu, X, Camera, ExternalLink, BarChart2, Settings } from 'lucide-react';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Overview', icon: LayoutDashboard, exact: true },
@@ -11,6 +11,7 @@ const navItems = [
   { href: '/admin/dashboard/analytics', label: 'Analytics', icon: BarChart2, exact: false },
   { href: '/admin/dashboard/content', label: 'Content', icon: Type, exact: false },
   { href: '/admin/dashboard/services', label: 'Services', icon: Layers, exact: false },
+  { href: '/admin/dashboard/settings', label: 'Settings', icon: Settings, exact: false },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -86,7 +87,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex">
+    <div className="h-screen bg-neutral-50 dark:bg-neutral-950 flex overflow-hidden">
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 fixed inset-y-0 left-0 z-30">
         <NavContent />
@@ -134,7 +135,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </AnimatePresence>
 
       {/* Main content */}
-      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0">
+      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0 overflow-y-auto">
         {children}
       </main>
     </div>

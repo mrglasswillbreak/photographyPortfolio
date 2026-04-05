@@ -6,6 +6,10 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'LensCraft Photography',
   description: 'Professional photography portfolio – capturing life\'s beautiful moments.',
+  icons: {
+    icon: '/api/favicon',
+    shortcut: '/api/favicon',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
