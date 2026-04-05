@@ -138,7 +138,7 @@ app/
 │   ├── services/       # Services CRUD API
 │   ├── content/        # Content CRUD API
 │   ├── analytics/      # Analytics read & page-view tracking
-│   ├── images/         # Private Vercel Blob image proxy (caching, access control)
+│   ├── images/         # Public proxy for private Blob uploads (long-term caching, uploads/ allowlist)
 │   ├── upload/         # Vercel Blob upload endpoint
 │   ├── contact/        # Contact form → Gmail SMTP email (Nodemailer)
 │   └── seed/           # One-time database seeding
