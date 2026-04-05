@@ -1,5 +1,6 @@
 'use client';
 import { memo, useState, useEffect } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { fadeIn, fadeInUp } from '@/utils/animations';
@@ -59,7 +60,7 @@ function Hero() {
         transition={{ duration: 1.5, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="absolute inset-0 z-0"
       >
-        <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${content.image})` }} />
+        <Image src={content.image} alt="Hero background" fill priority className="object-cover object-center" sizes="100vw" />
         <div className="absolute inset-0 bg-black/40 dark:bg-black/60" />
       </motion.div>
 
