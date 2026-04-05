@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import { getContent } from '@/lib/db';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -18,43 +18,38 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Please enter a valid email address' }, { status: 400 });
     }
 
-    const resendKey = process.env.RESEND_API_KEY;
-    const configuredFromEmail = process.env.FROM_EMAIL;
-    const fallbackFromEmail = 'Portfolio Contact <onboarding@resend.dev>';
-
-    const FREE_EMAIL_DOMAINS = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'live.com', 'icloud.com'];
-    const configuredDomain = configuredFromEmail?.match(/@([\w.-]+)>?$/)?.[1]?.toLowerCase();
-    const isFreeProvider = configuredDomain ? FREE_EMAIL_DOMAINS.includes(configuredDomain) : false;
-
-    if (!configuredFromEmail) {
-      console.warn(
-        'Email misconfiguration: FROM_EMAIL not set, using fallback sender "Portfolio Contact <onboarding@resend.dev>"'
-      );
-    } else if (isFreeProvider) {
-      console.warn(
-        `Email misconfiguration: FROM_EMAIL uses "${configuredDomain}" which cannot be verified with Resend. ` +
-          'Use a custom domain verified at https://resend.com/domains. Falling back to onboarding@resend.dev.'
-      );
-    }
-
-    const fromEmail = configuredFromEmail && !isFreeProvider ? configuredFromEmail : fallbackFromEmail;
+    const gmailUser = process.env.GMAIL_USER;
+    const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
 
     // Prefer the DB-stored recipient email; fall back to the env var.
     const dbRecipientEmail = await getContent('contact', 'recipient_email').catch(() => '');
     const contactEmail = dbRecipientEmail.trim() || process.env.CONTACT_EMAIL;
 
-    if (!resendKey || !contactEmail) {
-      console.error('Email not configured: RESEND_API_KEY or recipient email missing');
+    if (!gmailUser || !gmailAppPassword || !contactEmail) {
+      console.error('Email not configured: GMAIL_USER, GMAIL_APP_PASSWORD, or recipient email missing');
       return NextResponse.json(
         { error: 'Contact form is not configured. Please try again later.' },
         { status: 503 }
       );
     }
 
-    const resend = new Resend(resendKey);
+    if (!EMAIL_REGEX.test(gmailUser) || !EMAIL_REGEX.test(contactEmail)) {
+      console.error('Email misconfiguration: GMAIL_USER or recipient email is not a valid email address');
+      return NextResponse.json(
+        { error: 'Contact form is not configured. Please try again later.' },
+        { status: 503 }
+      );
+    }
 
-    const { error: sendError } = await resend.emails.send({
-      from: fromEmail,
+    // Google displays App Passwords with spaces (e.g. "xxxx xxxx xxxx xxxx").
+    // Strip them so the credential works regardless of how it was copied.
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: gmailUser, pass: gmailAppPassword.replace(/\s+/g, '') },
+    });
+
+    const info = await transporter.sendMail({
+      from: `"Portfolio Contact" <${gmailUser}>`,
       to: contactEmail,
       replyTo: email.trim(),
       subject: `[Portfolio Contact] ${subject.trim()}`,
@@ -82,13 +77,26 @@ export async function POST(request: Request) {
       `,
     });
 
-    if (sendError) {
-      console.error('Resend error:', sendError);
+    if (info.rejected.length > 0) {
+      console.error('sendMail: recipient(s) rejected by SMTP server', { rejected: info.rejected });
       return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    // Gmail SMTP auth failure (535) — treat as misconfiguration, not a server error.
+    if (message.includes('535') || message.toLowerCase().includes('username and password not accepted')) {
+      console.error(
+        'Gmail SMTP authentication failed. Ensure GMAIL_APP_PASSWORD is a valid App Password ' +
+        '(Google Account → Security → 2-Step Verification → App Passwords) and that 2-Step Verification is enabled.',
+        { route: 'app/api/contact/route.ts:POST' }
+      );
+      return NextResponse.json(
+        { error: 'Contact form is not configured. Please try again later.' },
+        { status: 503 }
+      );
+    }
     console.error('Unexpected contact form error', {
       route: 'app/api/contact/route.ts:POST',
       error: err instanceof Error ? { name: err.name, message: err.message } : err,
