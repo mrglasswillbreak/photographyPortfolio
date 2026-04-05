@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Images, Type, Layers, LayoutDashboard, LogOut, Menu, X, Camera, ExternalLink, BarChart2 } from 'lucide-react';
+import { Images, Type, Layers, LayoutDashboard, LogOut, Menu, X, Camera, ExternalLink, BarChart2, Settings } from 'lucide-react';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Overview', icon: LayoutDashboard, exact: true },
@@ -11,6 +11,7 @@ const navItems = [
   { href: '/admin/dashboard/analytics', label: 'Analytics', icon: BarChart2, exact: false },
   { href: '/admin/dashboard/content', label: 'Content', icon: Type, exact: false },
   { href: '/admin/dashboard/services', label: 'Services', icon: Layers, exact: false },
+  { href: '/admin/dashboard/settings', label: 'Settings', icon: Settings, exact: false },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
