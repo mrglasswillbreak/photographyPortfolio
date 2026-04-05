@@ -244,7 +244,7 @@ export default function SettingsPage() {
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
             Choose the color scheme for your admin dashboard.
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {([
               { value: 'light', label: 'Light', Icon: Sun },
               { value: 'system', label: 'System', Icon: Monitor },
