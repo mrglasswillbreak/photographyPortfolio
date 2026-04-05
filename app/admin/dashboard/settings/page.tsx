@@ -242,7 +242,7 @@ export default function SettingsPage() {
             <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Appearance</h2>
           </div>
           <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
-            Choose the colour scheme for your admin dashboard.
+            Choose the color scheme for your admin dashboard.
           </p>
           <div className="flex items-center gap-2">
             {([
