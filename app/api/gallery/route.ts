@@ -7,7 +7,9 @@ export async function GET() {
     const result = await sql`
       SELECT * FROM gallery_images ORDER BY display_order ASC, created_at ASC
     `;
-    return NextResponse.json(result.rows);
+    return NextResponse.json(result.rows, {
+      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300' },
+    });
   } catch {
     return NextResponse.json({ error: 'Failed to fetch gallery' }, { status: 500 });
   }

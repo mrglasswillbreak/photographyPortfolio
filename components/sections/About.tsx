@@ -1,5 +1,6 @@
 'use client';
 import { memo, useState, useEffect } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { fadeInLeft, fadeInRight, cardFadeIn, imageFadeIn } from '@/utils/animations';
 import { AboutSkeleton } from '@/components/ui/Skeleton';
@@ -71,8 +72,10 @@ function About() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <motion.div variants={imageFadeIn} initial="hidden" whileInView="visible" viewport={{ amount: 0.3 }} className="relative">
-            <motion.div className="aspect-[4/5] overflow-hidden" variants={fadeInLeft} initial="hidden" whileInView="visible" viewport={{ amount: 0.3 }}>
-              <motion.img whileHover={{ scale: 1.05 }} transition={{ duration: 0.6 }} src={content.image} alt="Photographer portrait" width={800} height={1000} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+            <motion.div className="aspect-[4/5] overflow-hidden relative" variants={fadeInLeft} initial="hidden" whileInView="visible" viewport={{ amount: 0.3 }}>
+              <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.6 }} className="relative w-full h-full">
+                <Image src={content.image} alt="Photographer portrait" fill className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" />
+              </motion.div>
             </motion.div>
             <motion.div className="absolute -bottom-4 -right-4 w-full h-full border-2 border-neutral-300 dark:border-neutral-700 -z-10" aria-hidden="true" initial={{ opacity: 0, x: 20, y: 20 }} whileInView={{ opacity: 1, x: 0, y: 0 }} viewport={{ amount: 0.3 }} transition={{ delay: 0.4, duration: 0.6 }} />
           </motion.div>
