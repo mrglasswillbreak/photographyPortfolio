@@ -21,13 +21,23 @@ export async function POST(request: Request) {
     const resendKey = process.env.RESEND_API_KEY;
     const configuredFromEmail = process.env.FROM_EMAIL;
     const fallbackFromEmail = 'Portfolio Contact <onboarding@resend.dev>';
-    const fromEmail = configuredFromEmail || fallbackFromEmail;
+
+    const FREE_EMAIL_DOMAINS = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'live.com', 'icloud.com'];
+    const configuredDomain = configuredFromEmail?.match(/@([\w.-]+)>?$/)?.[1]?.toLowerCase();
+    const isFreeProvider = configuredDomain ? FREE_EMAIL_DOMAINS.includes(configuredDomain) : false;
 
     if (!configuredFromEmail) {
       console.warn(
         'Email misconfiguration: FROM_EMAIL not set, using fallback sender "Portfolio Contact <onboarding@resend.dev>"'
       );
+    } else if (isFreeProvider) {
+      console.warn(
+        `Email misconfiguration: FROM_EMAIL uses "${configuredDomain}" which cannot be verified with Resend. ` +
+          'Use a custom domain verified at https://resend.com/domains. Falling back to onboarding@resend.dev.'
+      );
     }
+
+    const fromEmail = configuredFromEmail && !isFreeProvider ? configuredFromEmail : fallbackFromEmail;
 
     // Prefer the DB-stored recipient email; fall back to the env var.
     const dbRecipientEmail = await getContent('contact', 'recipient_email').catch(() => '');
