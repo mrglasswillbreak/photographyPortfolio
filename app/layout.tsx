@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ThemeProvider } from 'next-themes';
+import { Analytics } from '@vercel/analytics/next';
 import AnalyticsTracker from '@/components/ui/AnalyticsTracker';
 import './globals.css';
 
@@ -19,6 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AnalyticsTracker />
           {children}
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
