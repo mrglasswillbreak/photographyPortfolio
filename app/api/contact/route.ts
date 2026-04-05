@@ -41,9 +41,11 @@ export async function POST(request: Request) {
       );
     }
 
+    // Google displays App Passwords with spaces (e.g. "xxxx xxxx xxxx xxxx").
+    // Strip them so the credential works regardless of how it was copied.
     const transporter = nodemailer.createTransport({
       service: 'gmail',
-      auth: { user: gmailUser, pass: gmailAppPassword },
+      auth: { user: gmailUser, pass: gmailAppPassword.replace(/\s+/g, '') },
     });
 
     const info = await transporter.sendMail({
@@ -82,6 +84,19 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    // Gmail SMTP auth failure (535) — treat as misconfiguration, not a server error.
+    if (message.includes('535') || message.toLowerCase().includes('username and password not accepted')) {
+      console.error(
+        'Gmail SMTP authentication failed. Ensure GMAIL_APP_PASSWORD is a valid App Password ' +
+        '(Google Account → Security → 2-Step Verification → App Passwords) and that 2-Step Verification is enabled.',
+        { route: 'app/api/contact/route.ts:POST' }
+      );
+      return NextResponse.json(
+        { error: 'Contact form is not configured. Please try again later.' },
+        { status: 503 }
+      );
+    }
     console.error('Unexpected contact form error', {
       route: 'app/api/contact/route.ts:POST',
       error: err instanceof Error ? { name: err.name, message: err.message } : err,
