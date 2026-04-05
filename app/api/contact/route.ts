@@ -33,12 +33,20 @@ export async function POST(request: Request) {
       );
     }
 
+    if (!EMAIL_REGEX.test(gmailUser) || !EMAIL_REGEX.test(contactEmail)) {
+      console.error('Email misconfiguration: GMAIL_USER or recipient email is not a valid email address');
+      return NextResponse.json(
+        { error: 'Contact form is not configured. Please try again later.' },
+        { status: 503 }
+      );
+    }
+
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: { user: gmailUser, pass: gmailAppPassword },
     });
 
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: `"Portfolio Contact" <${gmailUser}>`,
       to: contactEmail,
       replyTo: email.trim(),
@@ -66,6 +74,11 @@ export async function POST(request: Request) {
         </div>
       `,
     });
+
+    if (info.rejected.length > 0) {
+      console.error('sendMail: recipient(s) rejected by SMTP server', { rejected: info.rejected });
+      return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {
