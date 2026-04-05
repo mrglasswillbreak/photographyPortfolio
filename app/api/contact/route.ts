@@ -78,7 +78,11 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (err) {
+    console.error('Unexpected contact form error', {
+      route: 'app/api/contact/route.ts:POST',
+      error: err instanceof Error ? { name: err.name, message: err.message } : err,
+    });
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
   }
 }
