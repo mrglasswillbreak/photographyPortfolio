@@ -3,6 +3,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, RotateCcw, Check, Loader2, Aperture } from 'lucide-react';
 
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_SIZE = 4 * 1024 * 1024;
+
 export default function SettingsPage() {
   const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -10,10 +13,12 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [reset, setReset] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
   const [error, setError] = useState('');
   const [previewKey, setPreviewKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     fetch('/api/content')
@@ -23,6 +28,14 @@ export default function SettingsPage() {
       })
       .catch(() => setError('Failed to load settings'))
       .finally(() => setIsLoading(false));
+  }, []);
+
+  // Clear any pending toast timers when the component unmounts.
+  useEffect(() => {
+    return () => {
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+    };
   }, []);
 
   const handleFileChange = useCallback(
@@ -35,7 +48,9 @@ export default function SettingsPage() {
       setIsUploading(true);
 
       try {
-        const MAX_SIZE = 4 * 1024 * 1024;
+        if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+          throw new Error('Invalid file type. Only JPEG, PNG, and WebP are allowed.');
+        }
         if (file.size > MAX_SIZE) {
           throw new Error('File too large. Maximum size is 4 MB.');
         }
@@ -62,7 +77,8 @@ export default function SettingsPage() {
         setFaviconUrl(url);
         setPreviewKey((k) => k + 1);
         setSaved(true);
-        setTimeout(() => setSaved(false), 2500);
+        if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+        savedTimerRef.current = setTimeout(() => setSaved(false), 2500);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to update favicon');
       } finally {
@@ -85,8 +101,9 @@ export default function SettingsPage() {
       if (!res.ok) throw new Error('Failed to reset favicon');
       setFaviconUrl(null);
       setPreviewKey((k) => k + 1);
-      setReset(true);
-      setTimeout(() => setReset(false), 2500);
+      setResetSuccess(true);
+      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+      resetTimerRef.current = setTimeout(() => setResetSuccess(false), 2500);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reset favicon');
     } finally {
@@ -191,7 +208,7 @@ export default function SettingsPage() {
                 </button>
               )}
 
-              {(saved || reset) && (
+              {(saved || resetSuccess) && (
                 <motion.span
                   initial={{ opacity: 0, x: -5 }}
                   animate={{ opacity: 1, x: 0 }}
