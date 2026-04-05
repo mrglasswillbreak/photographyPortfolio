@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, Trash2, Edit2, Check, X, Plus, Star, Loader2 } from 'lucide-react';
-import { upload } from '@vercel/blob/client';
 import type { GalleryImage } from '@/lib/types';
 
 const CATEGORIES = ['Landscape', 'Wedding', 'Portrait', 'Nature', 'Commercial', 'Event', 'Other'];
@@ -45,6 +44,16 @@ export default function GalleryManagerPage() {
   const [error, setError] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Holds the in-flight XHR so it can be aborted on unmount or before a new upload.
+  const xhrRef = useRef<XMLHttpRequest | null>(null);
+
+  // Abort any in-flight upload when the component unmounts to prevent state
+  // updates on an unmounted component.
+  useEffect(() => {
+    return () => {
+      xhrRef.current?.abort();
+    };
+  }, []);
 
   const loadImages = useCallback(async () => {
     try {
@@ -64,63 +73,89 @@ export default function GalleryManagerPage() {
 
   const uploadFile = useCallback(async (file: File) => {
     if (!file) return;
+
+    // Abort any previous in-flight upload before starting a new one.
+    xhrRef.current?.abort();
+
     setUploading(true);
     setUploadProgress(0);
     setError('');
 
-    // Abort after 5 minutes (300 s). A 10 MB file on a 512 Kbps connection takes
-    // ~160 s, so 30 s was far too short and was aborting legitimate uploads.
-    // @vercel/blob/client retries network errors with exponential back-off (up to
-    // 10 retries); without a cap the worst-case wait is ~17 min, so we keep the
-    // timeout as a safety net for truly stuck transfers.
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 300_000);
-
     try {
-      const pathname = `gallery/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-      const blob = await upload(pathname, file, {
-        access: 'public',
-        handleUploadUrl: '/api/upload',
-        abortSignal: controller.signal,
-        onUploadProgress: ({ percentage }) => {
-          // Cap at 99 during transfer — 100 is set explicitly once upload() resolves
-          // so the progress bar doesn't stall at the last throttled value.
-          setUploadProgress(Math.min(99, Math.round(percentage)));
-        },
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Use XHR so we get real upload-progress events while streaming the file
+      // to the server. fetch() doesn't expose upload progress.
+      const blobUrl = await new Promise<string>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhrRef.current = xhr;
+
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            // Cap at 99 — 100 is set explicitly once the server responds so the
+            // bar doesn't stall at the last value while the response is in flight.
+            setUploadProgress(Math.min(99, Math.round((event.loaded / event.total) * 100)));
+          }
+        };
+
+        xhr.onload = () => {
+          xhrRef.current = null;
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText) as { url?: string; error?: string };
+              if (data.url) {
+                resolve(data.url);
+              } else {
+                reject(new Error(data.error ?? 'Upload failed'));
+              }
+            } catch {
+              reject(new Error('Invalid server response'));
+            }
+          } else {
+            try {
+              const data = JSON.parse(xhr.responseText) as { error?: string };
+              reject(new Error(data.error ?? `Upload failed (${xhr.status})`));
+            } catch {
+              reject(new Error(`Upload failed (${xhr.status})`));
+            }
+          }
+        };
+
+        xhr.onerror = () => { xhrRef.current = null; reject(new Error('Upload failed. Check your connection.')); };
+        xhr.onabort = () => { xhrRef.current = null; reject(new Error('Upload cancelled.')); };
+        xhr.ontimeout = () => { xhrRef.current = null; reject(new Error('Upload timed out. Try again or check your connection.')); };
+        xhr.timeout = 300_000; // 5 minutes
+
+        xhr.open('POST', '/api/upload');
+        xhr.send(formData);
       });
 
-      // Bytes are confirmed received by Vercel Blob — advance to 100% so the
-      // user sees "Processing…" rather than a stalled 99% bar while we save
-      // the image metadata to the gallery database.
+      // Server confirmed the upload — advance to 100% while we save the metadata.
       setUploadProgress(100);
 
       const name = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
       const createRes = await fetch('/api/gallery', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: name, alt: name, category: 'Other', url: blob.url, featured: false, display_order: images.length }),
+        body: JSON.stringify({ title: name, alt: name, category: 'Other', url: blobUrl, featured: false, display_order: images.length }),
         signal: AbortSignal.timeout(30_000),
       });
       if (!createRes.ok) {
         const data = await createRes.json().catch(() => ({}));
-        throw new Error((data as { error?: string }).error || 'Failed to save image');
+        throw new Error((data as { error?: string }).error ?? 'Failed to save image');
       }
       await loadImages();
     } catch (err) {
-      // Check controller.signal.aborted first — that's the most reliable way to
-      // detect that OUR timeout fired.  BlobRequestAbortedError is not exported
-      // from @vercel/blob/client so we can't use instanceof, and the library's
-      // BlobError base class doesn't set this.name, making err.name unreliable.
-      if (controller.signal.aborted) {
-        setError('Upload timed out. Try again or check your connection.');
-      } else if (err instanceof Error && err.name === 'TimeoutError') {
+      if (err instanceof Error && err.name === 'TimeoutError') {
         // AbortSignal.timeout() on the gallery POST throws a TimeoutError DOMException
         setError('Connection timed out while saving. Please try again.');
-      } else {
-        setError(err instanceof Error ? err.message : 'Upload failed');
+      } else if (err instanceof Error && err.message !== 'Upload cancelled.') {
+        setError(err.message);
+      } else if (!(err instanceof Error)) {
+        setError('Upload failed');
       }
     } finally {
-      clearTimeout(timeoutId);
       setUploading(false);
       setUploadProgress(0);
     }
@@ -245,7 +280,7 @@ export default function GalleryManagerPage() {
           <div className="flex flex-col items-center gap-2">
             <Upload className="w-8 h-8 text-neutral-400" />
             <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Drop an image here, or click to browse</p>
-            <p className="text-xs text-neutral-400">JPEG, PNG, WebP or GIF — max 10MB</p>
+            <p className="text-xs text-neutral-400">JPEG, PNG, WebP or GIF — max 4 MB</p>
           </div>
         )}
       </div>
