@@ -78,9 +78,11 @@ export async function POST(request: Request): Promise<Response> {
     // filename) so blob keys are always consistent and safe.
     const ext = MIME_TO_EXT[file.type] ?? 'jpg';
     const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const blob = await put(`uploads/${safeName}`, file, { access: 'public' });
+    const blob = await put(`uploads/${safeName}`, file, { access: 'private' });
 
-    return NextResponse.json({ url: blob.url });
+    // Return a proxy URL so the image can be served publicly via the server-side
+    // image route, regardless of the store's access configuration.
+    return NextResponse.json({ url: `/api/images/${blob.pathname}` });
   } catch (error) {
     console.error('Upload failed:', error);
 
