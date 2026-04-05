@@ -58,13 +58,23 @@ export async function DELETE(
 
     const imageUrl = existing.rows[0].url as string;
 
-    // Only delete from Vercel Blob if it's a blob URL
+    // Support both legacy direct blob URLs and the current proxy URL format
+    // (/api/images/uploads/...) so that deletes work regardless of when the
+    // image was uploaded.
+    let blobIdentifier: string | null = null;
     if (imageUrl.includes('blob.vercel-storage.com')) {
+      blobIdentifier = imageUrl;
+    } else if (imageUrl.startsWith('/api/images/')) {
+      // Strip the proxy prefix to get the blob pathname (e.g., "uploads/abc.jpg").
+      blobIdentifier = imageUrl.replace('/api/images/', '');
+    }
+
+    if (blobIdentifier) {
       try {
-        await del(imageUrl);
+        await del(blobIdentifier);
       } catch {
         // Log but don't fail if blob deletion fails
-        console.error('Failed to delete blob:', imageUrl);
+        console.error('Failed to delete blob:', blobIdentifier);
       }
     }
 
