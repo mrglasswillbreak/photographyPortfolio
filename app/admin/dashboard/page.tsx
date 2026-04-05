@@ -16,33 +16,170 @@ interface AnalyticsSummary {
   views_over_time: { date: string; count: number }[];
 }
 
-/* ── Mini sparkline ─────────────────────────────────────────────────────── */
-function Sparkline({ data }: { data: { date: string; count: number }[] }) {
-  if (data.length < 2) {
+/* ── helpers ────────────────────────────────────────────────────────────── */
+function fmtDate(iso: string) {
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+const MAX_X_LABELS = 7;
+
+function smoothLinePath(pts: [number, number][]): string {
+  if (pts.length === 0) return '';
+  if (pts.length === 1) return `M ${pts[0][0]},${pts[0][1]}`;
+  let d = `M ${pts[0][0]},${pts[0][1]}`;
+  for (let i = 1; i < pts.length; i++) {
+    const [px, py] = pts[i - 1];
+    const [cx, cy] = pts[i];
+    const cp1x = px + (cx - px) / 3;
+    const cp2x = cx - (cx - px) / 3;
+    d += ` C ${cp1x},${py} ${cp2x},${cy} ${cx},${cy}`;
+  }
+  return d;
+}
+
+/* ── Line chart (mirrors the one on the analytics page) ─────────────────── */
+function LineChart({ data }: { data: { date: string; count: number }[] }) {
+  const [tooltip, setTooltip] = useState<{ idx: number } | null>(null);
+  if (data.length === 0) {
     return (
       <p className="text-xs text-neutral-400 dark:text-neutral-600 text-center py-2">
         No data yet
       </p>
     );
   }
-  const W = 300;
-  const H = 48;
-  const pad = { top: 4, right: 4, bottom: 4, left: 4 };
+
+  const W = 600;
+  const H = 150;
+  const pad = { top: 16, right: 16, bottom: 28, left: 36 };
   const innerW = W - pad.left - pad.right;
   const innerH = H - pad.top - pad.bottom;
+
   const maxVal = Math.max(...data.map((d) => d.count), 1);
-  const xScale = (i: number) => pad.left + (i / (data.length - 1)) * innerW;
+  const xScale = (i: number) => pad.left + (i / Math.max(data.length - 1, 1)) * innerW;
   const yScale = (v: number) => pad.top + innerH - (v / maxVal) * innerH;
-  const points = data.map((d, i) => `${xScale(i)},${yScale(d.count)}`).join(' ');
-  const areaPoints =
-    `${xScale(0)},${pad.top + innerH} ` +
-    points +
-    ` ${xScale(data.length - 1)},${pad.top + innerH}`;
+
+  const pts: [number, number][] = data.map((d, i) => [xScale(i), yScale(d.count)]);
+  const linePD = smoothLinePath(pts);
+  const areaPD =
+    linePD +
+    ` L ${pts[pts.length - 1][0]},${pad.top + innerH} L ${pts[0][0]},${pad.top + innerH} Z`;
+
+  const yTicks = Array.from({ length: 5 }, (_, k) => Math.round((maxVal / 4) * k));
+  const step = Math.max(1, Math.ceil(data.length / MAX_X_LABELS));
+  const xLabelIdxs = data.map((_, i) => i).filter((i) => i % step === 0);
+
+  const ttIdx = tooltip?.idx ?? -1;
+  const ttX = ttIdx >= 0 ? pts[ttIdx][0] : 0;
+  const ttY = ttIdx >= 0 ? pts[ttIdx][1] : 0;
+  const ttBoxW = 84;
+  const ttBoxH = 36;
+  const ttBoxX = Math.min(Math.max(ttX - ttBoxW / 2, pad.left), pad.left + innerW - ttBoxW);
+  const ttBoxY = Math.max(ttY - ttBoxH - 8, pad.top);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-12" aria-label="Views sparkline">
-      <polygon points={areaPoints} fill="#3b82f618" />
-      <polyline points={points} fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinejoin="round" />
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      className="w-full"
+      aria-label="Views over time"
+      onMouseLeave={() => setTooltip(null)}
+      onMouseMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const mx = ((e.clientX - rect.left) / rect.width) * W;
+        let closest = 0;
+        let minDist = Infinity;
+        pts.forEach(([px], i) => {
+          const dist = Math.abs(px - mx);
+          if (dist < minDist) { minDist = dist; closest = i; }
+        });
+        const threshold = (innerW / Math.max(data.length, 1)) * 1.5;
+        setTooltip(minDist < threshold ? { idx: closest } : null);
+      }}
+    >
+      <defs>
+        <linearGradient id="overviewLineAreaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+
+      {/* Grid lines */}
+      {yTicks.map((v) => (
+        <g key={v}>
+          <line
+            x1={pad.left} x2={pad.left + innerW}
+            y1={yScale(v)} y2={yScale(v)}
+            className="stroke-neutral-200 dark:stroke-neutral-700"
+            strokeDasharray="4 3"
+          />
+          <text
+            x={pad.left - 5} y={yScale(v) + 3.5}
+            textAnchor="end"
+            className="fill-neutral-400 dark:fill-neutral-500"
+            style={{ fontSize: 9 }}
+          >
+            {v}
+          </text>
+        </g>
+      ))}
+
+      {/* Area fill */}
+      <path d={areaPD} fill="url(#overviewLineAreaGrad)" />
+      {/* Smooth line */}
+      <path d={linePD} fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+
+      {/* Tooltip vertical guide */}
+      {ttIdx >= 0 && (
+        <line
+          x1={ttX} x2={ttX}
+          y1={pad.top} y2={pad.top + innerH}
+          stroke="#3b82f6" strokeWidth="1" strokeDasharray="3 3" opacity="0.45"
+        />
+      )}
+
+      {/* Dots */}
+      {pts.map(([px, py], i) => (
+        <circle
+          key={i} cx={px} cy={py} r={i === ttIdx ? 4.5 : 3}
+          fill={i === ttIdx ? '#3b82f6' : 'white'}
+          stroke="#3b82f6" strokeWidth="2"
+          className={i === ttIdx ? '' : 'dark:[fill:theme(colors.neutral.900)]'}
+        />
+      ))}
+
+      {/* Tooltip box */}
+      {ttIdx >= 0 && (
+        <g>
+          <rect x={ttBoxX} y={ttBoxY} width={ttBoxW} height={ttBoxH} rx="4" fill="#171717" opacity="0.88" className="dark:fill-white dark:opacity-90" />
+          <text
+            x={ttBoxX + ttBoxW / 2} y={ttBoxY + 13}
+            textAnchor="middle" style={{ fontSize: 9, fontWeight: 600 }}
+            fill="white" className="dark:fill-neutral-900"
+          >
+            {fmtDate(data[ttIdx].date)}
+          </text>
+          <text
+            x={ttBoxX + ttBoxW / 2} y={ttBoxY + 26}
+            textAnchor="middle" style={{ fontSize: 9 }}
+            fill="#a3a3a3" className="dark:fill-neutral-500"
+          >
+            {data[ttIdx].count.toLocaleString()} views
+          </text>
+        </g>
+      )}
+
+      {/* X-axis labels */}
+      {xLabelIdxs.map((i) => (
+        <text
+          key={data[i].date}
+          x={xScale(i)} y={H - 6}
+          textAnchor="middle"
+          className="fill-neutral-400 dark:fill-neutral-500"
+          style={{ fontSize: 9 }}
+        >
+          {fmtDate(data[i].date)}
+        </text>
+      ))}
     </svg>
   );
 }
@@ -170,7 +307,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <Sparkline data={analytics?.views_over_time ?? []} />
+          <LineChart data={analytics?.views_over_time ?? []} />
         </div>
       </motion.div>
 
