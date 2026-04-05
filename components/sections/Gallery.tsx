@@ -1,5 +1,6 @@
 'use client';
 import { memo, useMemo, useState, useCallback, useEffect } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { fadeIn, staggerContainer, imageFadeIn, imageHover, overlayHover } from '@/utils/animations';
 import { GallerySkeleton } from '@/components/ui/Skeleton';
@@ -66,9 +67,8 @@ function Gallery() {
               whileHover="hover"
               onClick={() => openLightbox({ src: image.url, alt: image.alt })}
             >
-              <motion.div variants={imageHover} initial="rest" className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={image.url} alt={image.alt} className={`w-full object-cover ${getImageHeight(index)}`} loading="lazy" decoding="async" />
+              <motion.div variants={imageHover} initial="rest" className={`relative ${getImageHeight(index)}`}>
+                <Image src={image.url} alt={image.alt} fill className="object-cover" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" />
                 <motion.div variants={overlayHover} className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
                   <span className="text-xs tracking-[0.2em] text-white/70 uppercase mb-2">{image.category}</span>
                   <h3 className="text-lg font-light text-white">{image.alt}</h3>
