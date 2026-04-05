@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
     const resend = new Resend(resendKey);
 
-    await resend.emails.send({
+    const { error: sendError } = await resend.emails.send({
       from: fromEmail,
       to: contactEmail,
       replyTo: email.trim(),
@@ -71,6 +71,11 @@ export async function POST(request: Request) {
         </div>
       `,
     });
+
+    if (sendError) {
+      console.error('Resend error:', sendError);
+      return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true });
   } catch {
