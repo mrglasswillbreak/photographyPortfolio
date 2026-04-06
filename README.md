@@ -17,10 +17,15 @@ A modern, full-stack photography portfolio built with **Next.js**, **TypeScript*
 
 ![Admin Dashboard](public/screenshots/admin-dashboard.png)
 
+## 🆕 Latest Updates
+
+- **Hero Performance** — Simplified Hero section image structure: the background `<Image>` and overlay `<div>` are now direct siblings inside a single `motion.div`, removing an unnecessary DOM wrapper and improving first-paint performance.
+
 ## ✨ Features
 
 ### Portfolio Site
 - **Luxurious Animations** - Smooth entrance and transition effects powered by Framer Motion
+- **Optimised Hero Section** - Background image and dark overlay rendered as direct siblings inside a single animated wrapper for faster first-paint
 - **Responsive Design** - Fully mobile and desktop friendly
 - **Dark/Light Mode** - System preference detection with manual toggle
 - **Dynamic Gallery** - Masonry grid populated from the database with category filtering, hover effects, skeleton loading states, and a zoomable image lightbox
