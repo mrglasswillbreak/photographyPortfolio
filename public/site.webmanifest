@@ -8,15 +8,15 @@
   "theme_color": "#111111",
   "icons": [
     {
-      "src": "/api/favicon",
-      "type": "image/svg+xml",
-      "sizes": "any",
-      "purpose": "any"
-    },
-    {
       "src": "/apple-icon.png",
       "type": "image/png",
       "sizes": "180x180",
+      "purpose": "any"
+    },
+    {
+      "src": "/api/pwa-icon",
+      "type": "image/png",
+      "sizes": "512x512",
       "purpose": "any maskable"
     }
   ]
