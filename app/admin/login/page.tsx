@@ -49,7 +49,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/api/favicon" alt="LensCraft" className="inline-block w-16 h-16 rounded-2xl mb-4" />
+          <img src="/api/favicon" alt="LensCraft" className="inline-block w-16 h-16 rounded-xl mb-4" />
           <h1 className="text-2xl font-light tracking-wider text-neutral-900 dark:text-white">
             LENS<span className="font-semibold">CRAFT</span>
           </h1>
