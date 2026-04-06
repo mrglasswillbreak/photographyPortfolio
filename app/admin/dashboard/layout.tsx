@@ -33,7 +33,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="p-6 border-b border-neutral-200 dark:border-neutral-800">
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/api/favicon" alt="LensCraft" className="w-9 h-9 rounded-lg flex-shrink-0" />
+          <img src="/api/favicon" alt="LensCraft" className="w-9 h-9 rounded-md flex-shrink-0" />
           <div>
             <p className="font-semibold text-sm text-neutral-900 dark:text-white tracking-wider">LENSCRAFT</p>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">Admin Dashboard</p>
@@ -96,7 +96,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/api/favicon" alt="LensCraft" className="w-8 h-8 rounded-lg" />
+          <img src="/api/favicon" alt="LensCraft" className="w-8 h-8 rounded-md" />
           <span className="font-semibold text-sm tracking-wider text-neutral-900 dark:text-white">LENSCRAFT</span>
         </div>
         <button
