@@ -9,16 +9,13 @@ export const metadata: Metadata = {
   description: 'Professional photography portfolio – capturing life\'s beautiful moments.',
   manifest: '/site.webmanifest',
   icons: {
-    icon: [
-      { url: '/api/favicon', type: 'image/svg+xml' },
-      { url: '/api/favicon', sizes: 'any' },
-    ],
+    icon: '/api/favicon',
     shortcut: '/api/favicon',
     apple: [
       { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
     ],
     other: [
-      { rel: 'mask-icon', url: '/api/favicon' },
+      { rel: 'mask-icon', url: '/favicon.svg' },
     ],
   },
 };
