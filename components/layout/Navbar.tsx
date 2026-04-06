@@ -42,7 +42,9 @@ function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <motion.a href="#home" className="text-2xl font-light tracking-wider text-neutral-900 dark:text-white" whileHover={{ scale: 1.02 }}>
+          <motion.a href="#home" className="flex items-center gap-2 text-2xl font-light tracking-wider text-neutral-900 dark:text-white" whileHover={{ scale: 1.02 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/api/favicon" alt="" aria-hidden="true" className="w-8 h-8 rounded-md flex-shrink-0" />
             LENS<span className="font-semibold">CRAFT</span>
           </motion.a>
 
