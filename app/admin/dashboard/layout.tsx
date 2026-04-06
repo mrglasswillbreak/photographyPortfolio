@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Images, Type, Layers, LayoutDashboard, LogOut, Menu, X, Camera, ExternalLink, BarChart2, Settings } from 'lucide-react';
+import { Images, Type, Layers, LayoutDashboard, LogOut, Menu, X, ExternalLink, BarChart2, Settings } from 'lucide-react';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Overview', icon: LayoutDashboard, exact: true },
@@ -32,9 +32,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Logo */}
       <div className="p-6 border-b border-neutral-200 dark:border-neutral-800">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-neutral-900 dark:bg-white rounded-full flex items-center justify-center flex-shrink-0">
-            <Camera className="w-5 h-5 text-white dark:text-neutral-900" />
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/api/favicon" alt="LensCraft" className="w-9 h-9 rounded-md flex-shrink-0" />
           <div>
             <p className="font-semibold text-sm text-neutral-900 dark:text-white tracking-wider">LENSCRAFT</p>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">Admin Dashboard</p>
@@ -96,9 +95,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-neutral-900 dark:bg-white rounded-full flex items-center justify-center">
-            <Camera className="w-4 h-4 text-white dark:text-neutral-900" />
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/api/favicon" alt="LensCraft" className="w-8 h-8 rounded-md" />
           <span className="font-semibold text-sm tracking-wider text-neutral-900 dark:text-white">LENSCRAFT</span>
         </div>
         <button
