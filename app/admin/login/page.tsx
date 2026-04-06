@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Lock, User, Eye, EyeOff, Camera } from 'lucide-react';
+import { Lock, User, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -48,9 +48,8 @@ export default function LoginPage() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-neutral-900 dark:bg-white rounded-full mb-4">
-            <Camera className="w-8 h-8 text-white dark:text-neutral-900" />
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/api/favicon" alt="LensCraft" className="inline-block w-16 h-16 rounded-2xl mb-4" />
           <h1 className="text-2xl font-light tracking-wider text-neutral-900 dark:text-white">
             LENS<span className="font-semibold">CRAFT</span>
           </h1>
