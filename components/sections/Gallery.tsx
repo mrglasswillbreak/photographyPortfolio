@@ -49,20 +49,24 @@ function Gallery() {
   return (
     <section id="gallery" className="py-20 md:py-32 bg-neutral-50 dark:bg-neutral-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div variants={fadeIn} initial="hidden" whileInView="visible" viewport={{ amount: 0.3 }} className="text-center mb-16">
-          <span className="text-sm tracking-[0.3em] text-neutral-500 dark:text-neutral-400 uppercase">Portfolio</span>
+        <motion.div variants={fadeIn} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} className="text-center mb-16">
+          <span className="inline-flex items-center gap-3 text-sm tracking-[0.3em] text-neutral-500 dark:text-neutral-400 uppercase">
+            <span className="w-8 h-px bg-neutral-300 dark:bg-neutral-600" aria-hidden="true" />
+            Portfolio
+            <span className="w-8 h-px bg-neutral-300 dark:bg-neutral-600" aria-hidden="true" />
+          </span>
           <h2 className="mt-4 text-3xl md:text-4xl lg:text-5xl font-light text-neutral-900 dark:text-white">
             {titleWords.slice(0, -1).join(' ')}{' '}
             <span className="italic font-semibold">{titleWords.slice(-1)}</span>
           </h2>
-          <p className="mt-4 text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">{header.subtitle}</p>
+          <p className="mt-4 text-neutral-500 dark:text-neutral-400 max-w-2xl mx-auto">{header.subtitle}</p>
         </motion.div>
 
-        <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ amount: 0.1 }} className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
+        <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4">
           {images.map((image, index) => (
             <motion.div
               key={image.id}
-              variants={imageFadeIn} initial="hidden" whileInView="visible" viewport={{ amount: 0.2 }}
+              variants={imageFadeIn} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}
               className="break-inside-avoid group relative overflow-hidden cursor-pointer"
               whileHover="hover"
               onClick={() => openLightbox({ src: image.url, alt: image.alt })}

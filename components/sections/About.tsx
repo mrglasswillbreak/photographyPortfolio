@@ -71,29 +71,32 @@ function About() {
     <section id="about" className="py-20 md:py-32 bg-neutral-50 dark:bg-neutral-900 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          <motion.div variants={imageFadeIn} initial="hidden" whileInView="visible" viewport={{ amount: 0.3 }} className="relative">
-            <motion.div className="aspect-[4/5] overflow-hidden relative" variants={fadeInLeft} initial="hidden" whileInView="visible" viewport={{ amount: 0.3 }}>
-              <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.6 }} className="relative w-full h-full">
+          <motion.div variants={imageFadeIn} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} className="relative">
+            <motion.div className="aspect-[4/5] overflow-hidden relative" variants={fadeInLeft} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }}>
+              <motion.div whileHover={{ scale: 1.05 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} className="relative w-full h-full">
                 <Image src={content.image} alt="Photographer portrait" fill className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" />
               </motion.div>
             </motion.div>
-            <motion.div className="absolute -bottom-4 -right-4 w-full h-full border-2 border-neutral-300 dark:border-neutral-700 -z-10" aria-hidden="true" initial={{ opacity: 0, x: 20, y: 20 }} whileInView={{ opacity: 1, x: 0, y: 0 }} viewport={{ amount: 0.3 }} transition={{ delay: 0.4, duration: 0.6 }} />
+            <motion.div className="absolute -bottom-4 -right-4 w-full h-full border-2 border-neutral-300 dark:border-neutral-700 -z-10" aria-hidden="true" initial={{ opacity: 0, x: 20, y: 20 }} whileInView={{ opacity: 1, x: 0, y: 0 }} viewport={{ once: true, amount: 0.3 }} transition={{ delay: 0.4, duration: 0.7, ease: [0.22, 1, 0.36, 1] }} />
           </motion.div>
 
-          <motion.div variants={fadeInRight} initial="hidden" whileInView="visible" viewport={{ amount: 0.3 }} className="lg:pl-8">
-            <motion.span className="text-sm tracking-[0.3em] text-neutral-500 dark:text-neutral-400 uppercase block" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ amount: 0.5 }} transition={{ delay: 0.1 }}>About Me</motion.span>
-            <motion.h2 className="mt-4 text-3xl md:text-4xl lg:text-5xl font-light text-neutral-900 dark:text-white" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ amount: 0.5 }} transition={{ delay: 0.2 }}>
+          <motion.div variants={fadeInRight} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} className="lg:pl-8">
+            <motion.span className="inline-flex items-center gap-3 text-sm tracking-[0.3em] text-neutral-500 dark:text-neutral-400 uppercase" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ delay: 0.1, ease: [0.22, 1, 0.36, 1] }}>
+              <span className="w-6 h-px bg-neutral-400 dark:bg-neutral-600" aria-hidden="true" />
+              About Me
+            </motion.span>
+            <motion.h2 className="mt-4 text-3xl md:text-4xl lg:text-5xl font-light text-neutral-900 dark:text-white" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ delay: 0.2, ease: [0.22, 1, 0.36, 1] }}>
               {titleWords.slice(0, 2).join(' ')}{' '}
               <span className="italic font-semibold">{titleWords.slice(2).join(' ')}</span>
             </motion.h2>
             <div className="mt-8 space-y-6 text-neutral-600 dark:text-neutral-400">
               {[content.bio_1, content.bio_2, content.bio_3].filter(Boolean).map((text, i) => (
-                <motion.p key={i} className="leading-relaxed" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ amount: 0.5 }} transition={{ delay: 0.3 + i * 0.1 }}>{text}</motion.p>
+                <motion.p key={i} className="leading-relaxed" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.5 }} transition={{ delay: 0.3 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}>{text}</motion.p>
               ))}
             </div>
             <div className="mt-12 grid grid-cols-3 gap-8">
               {stats.map((stat, i) => (
-                <motion.div key={stat.label} variants={cardFadeIn} initial="hidden" whileInView="visible" viewport={{ amount: 0.5 }} transition={{ delay: 0.5 + i * 0.15 }}>
+                <motion.div key={stat.label} variants={cardFadeIn} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.5 }} transition={{ delay: 0.5 + i * 0.15 }}>
                   <div className="text-3xl md:text-4xl font-light text-neutral-900 dark:text-white">{stat.number}</div>
                   <div className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{stat.label}</div>
                 </motion.div>
