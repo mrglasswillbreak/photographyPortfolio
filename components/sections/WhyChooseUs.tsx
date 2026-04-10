@@ -70,7 +70,8 @@ function WhyChooseUs() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.15 }}
                 transition={{ duration: 0.8, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                className="group relative h-[440px] overflow-hidden cursor-default"
+                tabIndex={0}
+                className="group relative h-[440px] overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
               >
                 {/* Background image — zooms on hover */}
                 <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-110">
@@ -102,8 +103,8 @@ function WhyChooseUs() {
 
                   <h3 className="text-xl font-medium text-white mb-2 leading-snug">{reason.title}</h3>
 
-                  {/* Description fades in on hover */}
-                  <p className="text-sm text-white/0 leading-relaxed transition-all duration-500 group-hover:text-white/70">
+                  {/* Description fades in on hover or focus */}
+                  <p className="text-sm text-white/0 leading-relaxed transition-all duration-500 group-hover:text-white/70 group-focus-within:text-white/70">
                     {reason.description}
                   </p>
                 </div>

@@ -69,7 +69,8 @@ function Services() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.15 }}
                 transition={{ duration: 0.8, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                className="group relative h-[420px] overflow-hidden cursor-pointer"
+                tabIndex={0}
+                className="group relative h-[420px] overflow-hidden cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
               >
                 {/* Background image — zooms on hover via CSS transform */}
                 <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-110">
@@ -96,17 +97,17 @@ function Services() {
 
                   <h3 className="text-xl font-medium text-white mb-2 leading-snug">{service.title}</h3>
 
-                  {/* Description fades up on hover */}
-                  <p className="text-sm text-white/0 leading-relaxed transition-all duration-500 group-hover:text-white/70">
+                  {/* Description fades up on hover or focus */}
+                  <p className="text-sm text-white/0 leading-relaxed transition-all duration-500 group-hover:text-white/70 group-focus-within:text-white/70">
                     {service.description}
                   </p>
 
                   {/* Explore link */}
                   <div className="mt-4 flex items-center gap-2">
-                    <span className="text-xs tracking-widest uppercase text-white/0 transition-all duration-500 group-hover:text-white/55">
+                    <span className="text-xs tracking-widest uppercase text-white/0 transition-all duration-500 group-hover:text-white/55 group-focus-within:text-white/55">
                       Explore
                     </span>
-                    <ArrowRight className="w-3.5 h-3.5 text-white/0 transition-all duration-500 group-hover:text-white/55 group-hover:translate-x-1" aria-hidden="true" />
+                    <ArrowRight className="w-3.5 h-3.5 text-white/0 transition-all duration-500 group-hover:text-white/55 group-hover:translate-x-1 group-focus-within:text-white/55 group-focus-within:translate-x-1" aria-hidden="true" />
                   </div>
                 </div>
               </motion.article>
