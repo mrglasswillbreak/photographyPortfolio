@@ -106,19 +106,23 @@ function Contact() {
   return (
     <section id="contact" className="py-20 md:py-32 bg-white dark:bg-neutral-950 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div variants={fadeIn} initial="hidden" whileInView="visible" viewport={{ amount: 0.3 }} className="text-center mb-16">
-          <span className="text-sm tracking-[0.3em] text-neutral-500 dark:text-neutral-400 uppercase">Get in Touch</span>
+        <motion.div variants={fadeIn} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} className="text-center mb-16">
+          <span className="inline-flex items-center gap-3 text-sm tracking-[0.3em] text-neutral-500 dark:text-neutral-400 uppercase">
+            <span className="w-8 h-px bg-neutral-300 dark:bg-neutral-600" aria-hidden="true" />
+            Get in Touch
+            <span className="w-8 h-px bg-neutral-300 dark:bg-neutral-600" aria-hidden="true" />
+          </span>
           <h2 className="mt-4 text-3xl md:text-4xl lg:text-5xl font-light text-neutral-900 dark:text-white">
             {titleWords.slice(0, -1).join(' ')}{' '}
             <span className="italic font-semibold">{titleWords.slice(-1)}</span>
           </h2>
-          <p className="mt-4 text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">{contactInfo.section_subtitle}</p>
+          <p className="mt-4 text-neutral-500 dark:text-neutral-400 max-w-2xl mx-auto">{contactInfo.section_subtitle}</p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          <motion.div variants={fadeInLeft} initial="hidden" whileInView="visible" viewport={{ amount: 0.3 }} className="space-y-8">
+          <motion.div variants={fadeInLeft} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} className="space-y-8">
             {infoItems.map((info, i) => (
-              <motion.div key={info.label} variants={cardFadeIn} initial="hidden" whileInView="visible" viewport={{ amount: 0.5 }} transition={{ delay: i * 0.15 }} whileHover={{ x: 10, scale: 1.02 }} className="flex items-start gap-4">
+              <motion.div key={info.label} variants={cardFadeIn} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.5 }} transition={{ delay: i * 0.15 }} whileHover={{ x: 10, scale: 1.02 }} className="flex items-start gap-4">
                 <div className="w-12 h-12 flex items-center justify-center bg-neutral-100 dark:bg-neutral-900 rounded-full">
                   <info.icon className="w-5 h-5 text-neutral-700 dark:text-neutral-300" aria-hidden="true" />
                 </div>
@@ -130,7 +134,7 @@ function Contact() {
             ))}
           </motion.div>
 
-          <motion.form variants={fadeInRight} initial="hidden" whileInView="visible" viewport={{ amount: 0.2 }} onSubmit={handleSubmit} className="lg:col-span-2 space-y-6" noValidate>
+          <motion.form variants={fadeInRight} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} onSubmit={handleSubmit} className="lg:col-span-2 space-y-6" noValidate>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">Name</label>

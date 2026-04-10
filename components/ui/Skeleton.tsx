@@ -90,19 +90,33 @@ export const AboutSkeleton = memo(function AboutSkeleton() {
 
 export const ServicesSkeleton = memo(function ServicesSkeleton() {
   return (
-    <section className="py-20 md:py-32 bg-white dark:bg-neutral-950">
+    <section className="py-20 md:py-32 bg-neutral-950">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <TextSkeleton width="w-24 mx-auto" height="h-4" />
           <div className="mt-4"><TextSkeleton width="w-64 mx-auto" height="h-10" /></div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="p-8 bg-neutral-50 dark:bg-neutral-900 rounded-sm">
-              <Skeleton className="w-14 h-14 rounded-full mb-6" />
-              <TextSkeleton width="w-3/4" height="h-6" />
-              <div className="mt-3"><TextSkeleton width="w-full" height="h-16" /></div>
-            </div>
+            <Skeleton key={i} className="h-[420px]" />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+});
+
+export const WhyChooseUsSkeleton = memo(function WhyChooseUsSkeleton() {
+  return (
+    <section className="py-20 md:py-32 bg-neutral-50 dark:bg-neutral-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <TextSkeleton width="w-24 mx-auto" height="h-4" />
+          <div className="mt-4"><TextSkeleton width="w-64 mx-auto" height="h-10" /></div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-[440px]" />
           ))}
         </div>
       </div>
