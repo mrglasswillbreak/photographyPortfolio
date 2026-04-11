@@ -2,7 +2,7 @@
 import { memo, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { fadeIn, fadeInUp } from '@/utils/animations';
+import { fadeIn, fadeInUp, EASE_OUT } from '@/utils/animations';
 import { HeroSkeleton } from '@/components/ui/Skeleton';
 
 const DEFAULT_HERO_IMAGE = 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1920&q=80';
@@ -56,7 +56,7 @@ function Hero() {
       <motion.div
         initial={{ scale: 1.12, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 1.8, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 1.8, ease: EASE_OUT }}
         className="absolute inset-0 z-0"
       >
         <Image src={content.image} alt="Hero background" fill priority className="object-cover object-center" sizes="100vw" />
@@ -134,9 +134,14 @@ function Hero() {
           href="#gallery"
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          className="w-px h-10 bg-gradient-to-b from-white/50 to-transparent block"
+          className="flex h-10 w-10 items-start justify-center"
           aria-label="Scroll to gallery"
-        />
+        >
+          <span
+            aria-hidden="true"
+            className="block h-10 w-px bg-gradient-to-b from-white/50 to-transparent"
+          />
+        </motion.a>
       </motion.div>
     </section>
   );
