@@ -67,5 +67,5 @@ export const overlayHover = {
 export const navSlide: Variants = {
   hidden: { x: '100%', opacity: 0 },
   visible: { x: 0, opacity: 1, transition: { duration: 0.45, ease: EASE_OUT } },
-  exit: { x: '100%', opacity: 0, transition: { duration: 0.35, ease: EASE_SMOOTH } },
+  exit: { x: '100%', opacity: 0, transition: { duration: 0.35, ease: EASE_OUT } },
 };
