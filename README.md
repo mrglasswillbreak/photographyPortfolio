@@ -1,6 +1,6 @@
 # LensCraft Photography Portfolio
 
-A modern, full-stack photography portfolio built with **Next.js**, **TypeScript**, and **Tailwind CSS**. Features a public-facing portfolio site with luxurious animations and a fully-featured admin CMS for managing gallery images, services, and all site content — backed by a PostgreSQL database, Vercel Blob storage, and JWT-secured authentication.
+A modern, full-stack photography portfolio built with **Next.js**, **TypeScript**, and **Tailwind CSS**. Features a public-facing portfolio site with luxurious animations and a fully-featured admin CMS for managing gallery images, services, and all site content — backed by a PostgreSQL database, Vercel Blob storage, and JWT-secured authentication..
 
 ![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=next.js)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
