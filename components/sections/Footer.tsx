@@ -6,6 +6,8 @@ import useSiteName from '@/components/hooks/useSiteName';
 import { SOCIAL_PLATFORMS } from '@/components/ui/SocialIcons';
 import SiteNameWordmark from '@/components/ui/SiteNameWordmark';
 
+const SEEDED_DEFAULT_FOOTER_TEXT = 'LensCraft. All rights reserved.';
+
 function isSafeUrl(url: string): boolean {
   try {
     const { protocol } = new URL(url);
@@ -36,6 +38,8 @@ function Footer() {
   }, []);
 
   const activeSocials = SOCIAL_PLATFORMS.filter((p) => socialUrls[p.id] && isSafeUrl(socialUrls[p.id]));
+  const normalizedFooterText = footerText.trim();
+  const shouldRenderDynamicFooterText = !normalizedFooterText || normalizedFooterText === SEEDED_DEFAULT_FOOTER_TEXT;
 
   return (
     <motion.footer
@@ -66,7 +70,13 @@ function Footer() {
             </nav>
           )}
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            {footerText || `© ${currentYear} ${siteName}. All rights reserved.`}
+            {shouldRenderDynamicFooterText ? (
+              <>
+                © {currentYear} <SiteNameWordmark siteName={siteName} />. All rights reserved.
+              </>
+            ) : (
+              footerText
+            )}
           </p>
         </div>
       </div>

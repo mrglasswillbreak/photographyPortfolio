@@ -38,18 +38,24 @@ function getSiteNameParts(siteName: string) {
 
 export default function SiteNameWordmark({ siteName, secondWordClassName = 'font-semibold' }: SiteNameWordmarkProps) {
   const { firstWord, secondWord, remainingWords, joiner } = getSiteNameParts(siteName);
+  const baseClassName = 'typography-site-name';
   const emphasisClassName = secondWordClassName
-    ? `typography-site-name ${secondWordClassName}`
-    : 'typography-site-name';
+    ? `${baseClassName} ${secondWordClassName}`
+    : baseClassName;
 
-  if (!secondWord) return <>{firstWord}</>;
+  if (!secondWord) return <span className={baseClassName}>{firstWord}</span>;
 
   return (
     <>
-      {firstWord}
+      <span className={baseClassName}>{firstWord}</span>
       {joiner}
       <span className={emphasisClassName}>{secondWord}</span>
-      {remainingWords.length > 0 ? `${joiner}${remainingWords.join(joiner)}` : ''}
+      {remainingWords.length > 0 && (
+        <>
+          {joiner}
+          <span className={baseClassName}>{remainingWords.join(joiner)}</span>
+        </>
+      )}
     </>
   );
 }

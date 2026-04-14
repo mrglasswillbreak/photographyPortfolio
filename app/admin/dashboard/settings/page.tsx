@@ -540,7 +540,7 @@ export default function SettingsPage() {
                 onChange={(e) => handleChange('style_site_name_italic', String(e.target.checked))}
                 className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-neutral-900 dark:focus:ring-white"
               />
-              Italicize site name highlight
+              Italicize site name
             </label>
           </div>
 
