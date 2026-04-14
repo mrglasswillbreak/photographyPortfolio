@@ -1,7 +1,9 @@
 'use client';
-import { useState, useEffect, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
+import type { MouseEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import { navSlide } from '@/utils/animations';
 
@@ -14,8 +16,11 @@ const navLinks = [
 ];
 
 function Navbar() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const longPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggeredRef = useRef(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -30,6 +35,34 @@ function Navbar() {
 
   const handleToggle = useCallback(() => setIsOpen((p) => !p), []);
   const handleClose = useCallback(() => setIsOpen(false), []);
+  const clearLogoLongPress = useCallback(() => {
+    if (!longPressTimeoutRef.current) return;
+    clearTimeout(longPressTimeoutRef.current);
+    longPressTimeoutRef.current = null;
+  }, []);
+  const handleLogoPointerDown = useCallback(() => {
+    longPressTriggeredRef.current = false;
+    clearLogoLongPress();
+    longPressTimeoutRef.current = setTimeout(() => {
+      longPressTimeoutRef.current = null;
+      longPressTriggeredRef.current = true;
+      router.push('/admin/dashboard');
+    }, 2300);
+  }, [clearLogoLongPress, router]);
+  const handleLogoPointerEnd = useCallback(() => {
+    clearLogoLongPress();
+  }, [clearLogoLongPress]);
+  const handleLogoClick = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
+    if (!longPressTriggeredRef.current) return;
+    event.preventDefault();
+    longPressTriggeredRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearLogoLongPress();
+    };
+  }, [clearLogoLongPress]);
 
   return (
     <motion.nav
@@ -42,7 +75,16 @@ function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <motion.a href="#home" className="flex items-center gap-2 text-2xl font-light tracking-wider text-neutral-900 dark:text-white" whileHover={{ scale: 1.02 }}>
+          <motion.a
+            href="#home"
+            onPointerDown={handleLogoPointerDown}
+            onPointerUp={handleLogoPointerEnd}
+            onPointerCancel={handleLogoPointerEnd}
+            onPointerLeave={handleLogoPointerEnd}
+            onClick={handleLogoClick}
+            className="flex items-center gap-2 text-2xl font-light tracking-wider text-neutral-900 dark:text-white"
+            whileHover={{ scale: 1.02 }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/api/favicon" alt="" aria-hidden="true" className="w-8 h-8 rounded-md flex-shrink-0" />
             LENS<span className="font-semibold">CRAFT</span>
