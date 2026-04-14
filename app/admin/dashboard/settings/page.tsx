@@ -190,6 +190,11 @@ export default function SettingsPage() {
           body: JSON.stringify(updates),
         });
         if (!res.ok) throw new Error('Failed to save');
+        if (sectionId === 'site') {
+          window.dispatchEvent(new CustomEvent<{ siteName: string }>('site-name-updated', {
+            detail: { siteName: updates.name ?? '' },
+          }));
+        }
         setSavedSection(sectionId);
         if (sectionSavedTimerRef.current) clearTimeout(sectionSavedTimerRef.current);
         sectionSavedTimerRef.current = setTimeout(() => setSavedSection(null), 2000);

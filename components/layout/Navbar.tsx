@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import ThemeToggle from '@/components/ui/ThemeToggle';
+import useSiteName from '@/components/hooks/useSiteName';
 import { navSlide } from '@/utils/animations';
 
 const navLinks = [
@@ -17,6 +18,7 @@ const navLinks = [
 
 function Navbar() {
   const router = useRouter();
+  const siteName = useSiteName();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const longPressTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -87,7 +89,7 @@ function Navbar() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/api/favicon" alt="" aria-hidden="true" className="w-8 h-8 rounded-md flex-shrink-0" />
-            LENS<span className="font-semibold">CRAFT</span>
+            {siteName}
           </motion.a>
 
           <div className="hidden md:flex items-center gap-8">

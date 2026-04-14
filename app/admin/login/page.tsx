@@ -4,9 +4,11 @@ import type { FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import useSiteName from '@/components/hooks/useSiteName';
 
 export default function LoginPage() {
   const router = useRouter();
+  const siteName = useSiteName();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -49,9 +51,9 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/api/favicon" alt="LensCraft" className="inline-block w-16 h-16 rounded-xl mb-4" />
+          <img src="/api/favicon" alt={siteName} className="inline-block w-16 h-16 rounded-xl mb-4" />
           <h1 className="text-2xl font-light tracking-wider text-neutral-900 dark:text-white">
-            LENS<span className="font-semibold">CRAFT</span>
+            {siteName}
           </h1>
           <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Admin Dashboard</p>
         </div>
