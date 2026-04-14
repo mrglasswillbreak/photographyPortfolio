@@ -1,3 +1,4 @@
+import { readFile } from 'fs/promises';
 import path from 'path';
 import type { ReactElement } from 'react';
 import { get } from '@vercel/blob';
@@ -45,7 +46,18 @@ async function getCustomIconDataUrl(): Promise<string | null> {
   }
 }
 
-function renderDefaultIcon(size: number): ReactElement {
+async function getDefaultIconDataUrl(): Promise<string | null> {
+  try {
+    const svgPath = path.join(process.cwd(), 'public', 'favicon.svg');
+    const svgContent = await readFile(svgPath);
+    return `data:image/svg+xml;base64,${svgContent.toString('base64')}`;
+  } catch (error) {
+    console.error('Failed to load default favicon:', error);
+    return null;
+  }
+}
+
+function renderFallbackIcon(size: number): ReactElement {
   const strokeWidth = Math.max(1.5, size * 0.047);
 
   return (
@@ -60,6 +72,7 @@ function renderDefaultIcon(size: number): ReactElement {
       }}
     >
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width={size} height={size}>
+        <rect width="32" height="32" rx="6" fill="#111111" />
         <circle cx="16" cy="16" r="12" stroke="white" strokeWidth={strokeWidth} fill="none" />
         <path d="M18.8 11.2 L25.7 23.1" stroke="white" strokeWidth={strokeWidth} strokeLinecap="round" fill="none" />
         <path d="M13.2 11.2 L27 11.2" stroke="white" strokeWidth={strokeWidth} strokeLinecap="round" fill="none" />
@@ -73,28 +86,24 @@ function renderDefaultIcon(size: number): ReactElement {
 }
 
 export async function renderSiteIcon(size: number): Promise<ReactElement> {
-  const customIconDataUrl = await getCustomIconDataUrl();
-  if (!customIconDataUrl) return renderDefaultIcon(size);
+  const iconDataUrl = (await getCustomIconDataUrl()) ?? (await getDefaultIconDataUrl());
+  if (!iconDataUrl) return renderFallbackIcon(size);
 
   return (
     <div
       style={{
-        background: '#111111',
         width: '100%',
         height: '100%',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={customIconDataUrl}
+        src={iconDataUrl}
         alt=""
         width={size}
         height={size}
-        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        style={{ width: '100%', height: '100%' }}
       />
     </div>
   );
