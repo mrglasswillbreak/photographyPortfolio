@@ -32,7 +32,7 @@ function Services() {
         <motion.div variants={fadeIn} initial="hidden" whileInView="visible" viewport={{ amount: 0.3 }} className="text-center mb-16">
           <span className="text-sm tracking-[0.3em] text-neutral-500 dark:text-neutral-400 uppercase">What I Offer</span>
           <h2 className="mt-4 text-3xl md:text-4xl lg:text-5xl font-light text-neutral-900 dark:text-white">
-            Photography <span className="italic font-semibold">Services</span>
+            Photography <span className="typography-emphasis italic font-semibold">Services</span>
           </h2>
           <p className="mt-4 text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">Professional photography services tailored to capture your unique story</p>
         </motion.div>

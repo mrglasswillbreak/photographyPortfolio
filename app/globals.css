@@ -15,3 +15,39 @@
     @apply m-0 font-sans antialiased;
   }
 }
+
+.typography-scope {
+  --typography-heading-weight: 300;
+  --typography-body-weight: 400;
+  --typography-button-weight: 500;
+  --typography-emphasis-weight: 600;
+  --typography-emphasis-style: italic;
+  --typography-site-name-weight: 600;
+  --typography-site-name-style: normal;
+  --typography-heading-letter-spacing: normal;
+  --typography-site-name-letter-spacing: 0.08em;
+}
+
+.typography-scope :where(h1, h2, h3, h4, h5, h6, [data-typography-heading='true']) {
+  font-weight: var(--typography-heading-weight) !important;
+  letter-spacing: var(--typography-heading-letter-spacing) !important;
+}
+
+.typography-scope :where(p, label, input, textarea, select, li, [data-typography-body='true']) {
+  font-weight: var(--typography-body-weight);
+}
+
+.typography-scope :where(button, [role='button'], .typography-button) {
+  font-weight: var(--typography-button-weight);
+}
+
+.typography-scope :where(.typography-emphasis, [data-typography-emphasis='true']) {
+  font-weight: var(--typography-emphasis-weight) !important;
+  font-style: var(--typography-emphasis-style) !important;
+}
+
+.typography-scope :where(.typography-site-name, [data-typography-site-name='true']) {
+  font-weight: var(--typography-site-name-weight) !important;
+  font-style: var(--typography-site-name-style) !important;
+  letter-spacing: var(--typography-site-name-letter-spacing) !important;
+}

@@ -53,7 +53,7 @@ function Gallery() {
           <span className="text-sm tracking-[0.3em] text-neutral-500 dark:text-neutral-400 uppercase">Portfolio</span>
           <h2 className="mt-4 text-3xl md:text-4xl lg:text-5xl font-light text-neutral-900 dark:text-white">
             {titleWords.slice(0, -1).join(' ')}{' '}
-            <span className="italic font-semibold">{titleWords.slice(-1)}</span>
+            <span className="typography-emphasis italic font-semibold">{titleWords.slice(-1)}</span>
           </h2>
           <p className="mt-4 text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto">{header.subtitle}</p>
         </motion.div>

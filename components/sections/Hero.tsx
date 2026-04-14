@@ -71,7 +71,7 @@ function Hero() {
         <motion.h1 variants={fadeInUp} initial="hidden" animate="visible" transition={{ delay: 0.2 }} className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light text-white mb-6 leading-tight">
           {content.title}
           <br />
-          <span className="font-semibold italic">{content.title_highlight}</span>
+          <span className="typography-emphasis font-semibold italic">{content.title_highlight}</span>
         </motion.h1>
         <motion.p variants={fadeIn} initial="hidden" animate="visible" transition={{ delay: 0.4 }} className="text-lg md:text-xl text-white/80 mb-10 max-w-2xl mx-auto font-light">
           {content.subtitle}

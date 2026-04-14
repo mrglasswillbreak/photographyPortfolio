@@ -57,5 +57,15 @@ export interface SiteContent {
   contact_location: string;
   // Site
   site_name: string;
-  footer_text: string;
+  site_footer_text: string;
+  // Typography
+  style_heading_weight: string;
+  style_body_weight: string;
+  style_button_weight: string;
+  style_emphasis_weight: string;
+  style_emphasis_italic: string;
+  style_site_name_weight: string;
+  style_site_name_italic: string;
+  style_heading_letter_spacing: string;
+  style_site_name_letter_spacing: string;
 }

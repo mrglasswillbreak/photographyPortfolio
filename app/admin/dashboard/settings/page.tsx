@@ -2,8 +2,19 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTheme } from 'next-themes';
 import { motion } from 'framer-motion';
-import { Upload, RotateCcw, Check, Loader2, Aperture, Sun, Moon, Monitor, Save, Link2, Mail, Shield } from 'lucide-react';
+import { Upload, RotateCcw, Check, Loader2, Aperture, Sun, Moon, Monitor, Save, Link2, Mail, Shield, Type } from 'lucide-react';
 import { SOCIAL_PLATFORMS } from '@/components/ui/SocialIcons';
+import SiteNameWordmark from '@/components/ui/SiteNameWordmark';
+import {
+  FONT_WEIGHT_OPTIONS,
+  LETTER_SPACING_OPTIONS,
+  getTypographyCssVariables,
+  parseTypographySettings,
+  toStyleContentMap,
+  typographySettingsToContentMap,
+  TYPOGRAPHY_UPDATED_EVENT,
+} from '@/lib/typography';
+import type { FontWeightOption, LetterSpacingOption } from '@/lib/typography';
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE = 4 * 1024 * 1024;
@@ -19,6 +30,33 @@ const SOCIAL_PLACEHOLDERS: Record<string, string> = {
   youtube: 'https://youtube.com/@yourchannel',
   linkedin: 'https://linkedin.com/in/yourprofile',
 };
+
+const FONT_WEIGHT_LABELS: Record<FontWeightOption, string> = {
+  light: 'Light',
+  normal: 'Normal',
+  medium: 'Medium',
+  semibold: 'Semibold',
+  bold: 'Bold',
+};
+
+const LETTER_SPACING_LABELS: Record<LetterSpacingOption, string> = {
+  normal: 'Normal',
+  tight: 'Tight',
+  wide: 'Wide',
+  wider: 'Wider',
+};
+
+const TYPOGRAPHY_STYLE_FIELDS: string[] = [
+  'heading_weight',
+  'body_weight',
+  'button_weight',
+  'emphasis_weight',
+  'emphasis_italic',
+  'site_name_weight',
+  'site_name_italic',
+  'heading_letter_spacing',
+  'site_name_letter_spacing',
+];
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -71,9 +109,13 @@ export default function SettingsPage() {
 
         const contentData = (await contentRes.json()) as Record<string, string>;
         const credentialsData = (await credentialsRes.json()) as { email?: string };
+        const normalizedContentData = {
+          ...contentData,
+          ...typographySettingsToContentMap(parseTypographySettings(contentData)),
+        };
 
-        setContent(contentData);
-        setFaviconUrl(contentData['site_favicon_url'] || null);
+        setContent(normalizedContentData);
+        setFaviconUrl(normalizedContentData['site_favicon_url'] || null);
         setAdminEmail(credentialsData.email ?? '');
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load settings');
@@ -195,6 +237,11 @@ export default function SettingsPage() {
             detail: { siteName: updates.name ?? '' },
           }));
         }
+        if (sectionId === 'style') {
+          window.dispatchEvent(new CustomEvent<Record<string, string>>(TYPOGRAPHY_UPDATED_EVENT, {
+            detail: toStyleContentMap(updates),
+          }));
+        }
         setSavedSection(sectionId);
         if (sectionSavedTimerRef.current) clearTimeout(sectionSavedTimerRef.current);
         sectionSavedTimerRef.current = setTimeout(() => setSavedSection(null), 2000);
@@ -296,6 +343,9 @@ export default function SettingsPage() {
   }
 
   const isFaviconBusy = isUploading || isSaving || isResetting;
+  const typographySettings = parseTypographySettings(content);
+  const typographyPreviewStyle = getTypographyCssVariables(typographySettings);
+  const siteNamePreview = (content['site_name'] ?? '').trim() || 'LensCraft';
 
   return (
     <div className="p-6 lg:p-8 max-w-2xl mx-auto">
@@ -357,11 +407,188 @@ export default function SettingsPage() {
           </div>
         </motion.div>
 
-        {/* ── Site Settings ────────────────────────────────────────────── */}
+        {/* ── Typography & Text Style ─────────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
+          className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <Type className="w-4 h-4 text-neutral-500" />
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Typography &amp; Text Style</h2>
+          </div>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
+            Control font weights, italics, and spacing used across your portfolio and admin interface.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
+                Heading Weight
+              </label>
+              <select
+                value={typographySettings.headingWeight}
+                onChange={(e) => handleChange('style_heading_weight', e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
+              >
+                {FONT_WEIGHT_OPTIONS.map((value) => (
+                  <option key={value} value={value}>{FONT_WEIGHT_LABELS[value]}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
+                Heading Letter Spacing
+              </label>
+              <select
+                value={typographySettings.headingLetterSpacing}
+                onChange={(e) => handleChange('style_heading_letter_spacing', e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
+              >
+                {LETTER_SPACING_OPTIONS.map((value) => (
+                  <option key={value} value={value}>{LETTER_SPACING_LABELS[value]}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
+                Body Text Weight
+              </label>
+              <select
+                value={typographySettings.bodyWeight}
+                onChange={(e) => handleChange('style_body_weight', e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
+              >
+                {FONT_WEIGHT_OPTIONS.map((value) => (
+                  <option key={value} value={value}>{FONT_WEIGHT_LABELS[value]}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
+                Button Weight
+              </label>
+              <select
+                value={typographySettings.buttonWeight}
+                onChange={(e) => handleChange('style_button_weight', e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
+              >
+                {FONT_WEIGHT_OPTIONS.map((value) => (
+                  <option key={value} value={value}>{FONT_WEIGHT_LABELS[value]}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
+                Emphasis Weight
+              </label>
+              <select
+                value={typographySettings.emphasisWeight}
+                onChange={(e) => handleChange('style_emphasis_weight', e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
+              >
+                {FONT_WEIGHT_OPTIONS.map((value) => (
+                  <option key={value} value={value}>{FONT_WEIGHT_LABELS[value]}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
+                Site Name Weight
+              </label>
+              <select
+                value={typographySettings.siteNameWeight}
+                onChange={(e) => handleChange('style_site_name_weight', e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
+              >
+                {FONT_WEIGHT_OPTIONS.map((value) => (
+                  <option key={value} value={value}>{FONT_WEIGHT_LABELS[value]}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
+                Site Name Letter Spacing
+              </label>
+              <select
+                value={typographySettings.siteNameLetterSpacing}
+                onChange={(e) => handleChange('style_site_name_letter_spacing', e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
+              >
+                {LETTER_SPACING_OPTIONS.map((value) => (
+                  <option key={value} value={value}>{LETTER_SPACING_LABELS[value]}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+            <label className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
+              <input
+                type="checkbox"
+                checked={typographySettings.emphasisItalic}
+                onChange={(e) => handleChange('style_emphasis_italic', String(e.target.checked))}
+                className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-neutral-900 dark:focus:ring-white"
+              />
+              Italicize emphasis text
+            </label>
+            <label className="flex items-center gap-2 text-sm text-neutral-700 dark:text-neutral-300">
+              <input
+                type="checkbox"
+                checked={typographySettings.siteNameItalic}
+                onChange={(e) => handleChange('style_site_name_italic', String(e.target.checked))}
+                className="h-4 w-4 rounded border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-neutral-900 dark:focus:ring-white"
+              />
+              Italicize site name highlight
+            </label>
+          </div>
+
+          <div
+            className="mt-4 rounded-lg border border-neutral-200 dark:border-neutral-700 p-4 bg-neutral-50 dark:bg-neutral-800/50 typography-scope"
+            style={typographyPreviewStyle}
+          >
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">Live Preview</p>
+            <h3 className="mt-2 text-xl text-neutral-900 dark:text-white">
+              Sample Heading <span className="typography-emphasis">Accent</span>
+            </h3>
+            <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+              Body text preview for checking readability and hierarchy.
+            </p>
+            <p className="mt-3 text-lg tracking-wider text-neutral-900 dark:text-white">
+              <SiteNameWordmark siteName={siteNamePreview} />
+            </p>
+            <button
+              type="button"
+              className="typography-button mt-4 px-3 py-1.5 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-md text-sm"
+            >
+              Sample Button
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() => saveSection('style', TYPOGRAPHY_STYLE_FIELDS)}
+              disabled={savingSection === 'style'}
+              className="flex items-center gap-2 px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+            >
+              {savingSection === 'style' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save Styles
+            </button>
+            {savedSection === 'style' && (
+              <motion.span initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
+                <Check className="w-4 h-4" /> Saved!
+              </motion.span>
+            )}
+          </div>
+        </motion.div>
+
+        {/* ── Site Settings ────────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
           className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
         >
           <div className="flex items-center gap-3 mb-5">
@@ -379,6 +606,12 @@ export default function SettingsPage() {
                 onChange={(e) => handleChange('site_name', e.target.value)}
                 className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
               />
+            </div>
+            <div className="rounded-lg border border-neutral-200 dark:border-neutral-700 p-3 bg-neutral-50 dark:bg-neutral-800/50 typography-scope" style={typographyPreviewStyle}>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">Site Name Preview</p>
+              <p className="mt-1 text-lg tracking-wider text-neutral-900 dark:text-white">
+                <SiteNameWordmark siteName={siteNamePreview} />
+              </p>
             </div>
             <div>
               <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
@@ -414,7 +647,7 @@ export default function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.15 }}
           className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
         >
           <div className="flex items-center gap-3 mb-5">
@@ -462,7 +695,7 @@ export default function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={{ delay: 0.2 }}
           className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
         >
           <div className="flex items-center gap-3 mb-5">
@@ -548,7 +781,7 @@ export default function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.25 }}
           className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
         >
           <div className="flex items-center gap-3 mb-5">
@@ -604,7 +837,7 @@ export default function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={{ delay: 0.3 }}
           className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
         >
           <div className="flex items-center gap-3 mb-5">

@@ -5,10 +5,13 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import useSiteName from '@/components/hooks/useSiteName';
+import useTypographyStyles from '@/components/hooks/useTypographyStyles';
+import SiteNameWordmark from '@/components/ui/SiteNameWordmark';
 
 export default function LoginPage() {
   const router = useRouter();
   const siteName = useSiteName();
+  const { style } = useTypographyStyles();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -41,7 +44,10 @@ export default function LoginPage() {
   }, [email, password, router]);
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 flex items-center justify-center p-4">
+    <div
+      className="typography-scope min-h-screen bg-neutral-50 dark:bg-neutral-950 flex items-center justify-center p-4"
+      style={style}
+    >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -53,7 +59,7 @@ export default function LoginPage() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/api/favicon" alt={siteName} className="inline-block w-16 h-16 rounded-xl mb-4" />
           <h1 className="text-2xl font-light tracking-wider text-neutral-900 dark:text-white">
-            {siteName}
+            <SiteNameWordmark siteName={siteName} />
           </h1>
           <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">Admin Dashboard</p>
         </div>

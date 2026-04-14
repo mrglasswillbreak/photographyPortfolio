@@ -43,6 +43,7 @@ A modern, full-stack photography portfolio built with **Next.js**, **TypeScript*
 - **Analytics** - 7-day visitor stats with page views, unique sessions, device types, and a sparkline trend chart
 - **Admin Credential Manager** - Update admin login email and password from the Settings page without redeploying
 - **Favicon Manager** - Upload a custom PNG/WebP favicon from the Settings page; changes take effect site-wide within minutes across browsers, iOS home-screen shortcuts, and installed app icons with no redeployment required; reset to the default camera-aperture icon at any time
+- **Typography & Style Manager** - Configure site-wide typography from Settings (heading/body/button weights, emphasis + site-name italics, and letter-spacing) with live previews in admin
 
 ## 🖼️ Sections
 

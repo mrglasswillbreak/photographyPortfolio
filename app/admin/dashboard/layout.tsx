@@ -5,6 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Images, Type, Layers, LayoutDashboard, LogOut, Menu, X, ExternalLink, BarChart2, Settings } from 'lucide-react';
 import useSiteName from '@/components/hooks/useSiteName';
+import useTypographyStyles from '@/components/hooks/useTypographyStyles';
+import SiteNameWordmark from '@/components/ui/SiteNameWordmark';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Overview', icon: LayoutDashboard, exact: true },
@@ -19,6 +21,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const siteName = useSiteName();
+  const { style } = useTypographyStyles();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = useCallback(async () => {
@@ -37,7 +40,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/api/favicon" alt={siteName} className="w-9 h-9 rounded-md flex-shrink-0" />
           <div>
-            <p className="font-semibold text-sm text-neutral-900 dark:text-white tracking-wider">{siteName}</p>
+            <p className="font-semibold text-sm text-neutral-900 dark:text-white tracking-wider">
+              <SiteNameWordmark siteName={siteName} />
+            </p>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">Admin Dashboard</p>
           </div>
         </div>
@@ -88,7 +93,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   return (
-    <div className="h-screen bg-neutral-50 dark:bg-neutral-950 flex overflow-hidden">
+    <div
+      className="typography-scope h-screen bg-neutral-50 dark:bg-neutral-950 flex overflow-hidden"
+      style={style}
+    >
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 fixed inset-y-0 left-0 z-30">
         <NavContent />
@@ -99,7 +107,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex items-center gap-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/api/favicon" alt={siteName} className="w-8 h-8 rounded-md" />
-          <span className="font-semibold text-sm tracking-wider text-neutral-900 dark:text-white">{siteName}</span>
+          <span className="font-semibold text-sm tracking-wider text-neutral-900 dark:text-white">
+            <SiteNameWordmark siteName={siteName} />
+          </span>
         </div>
         <button
           onClick={() => setMobileOpen((p) => !p)}

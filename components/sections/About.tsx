@@ -84,7 +84,7 @@ function About() {
             <motion.span className="text-sm tracking-[0.3em] text-neutral-500 dark:text-neutral-400 uppercase block" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ amount: 0.5 }} transition={{ delay: 0.1 }}>About Me</motion.span>
             <motion.h2 className="mt-4 text-3xl md:text-4xl lg:text-5xl font-light text-neutral-900 dark:text-white" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ amount: 0.5 }} transition={{ delay: 0.2 }}>
               {titleWords.slice(0, 2).join(' ')}{' '}
-              <span className="italic font-semibold">{titleWords.slice(2).join(' ')}</span>
+              <span className="typography-emphasis italic font-semibold">{titleWords.slice(2).join(' ')}</span>
             </motion.h2>
             <div className="mt-8 space-y-6 text-neutral-600 dark:text-neutral-400">
               {[content.bio_1, content.bio_2, content.bio_3].filter(Boolean).map((text, i) => (

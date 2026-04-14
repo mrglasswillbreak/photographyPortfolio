@@ -28,6 +28,15 @@ const INITIAL_CONTENT = [
   { section: 'contact', key: 'location', value: 'New York, NY' },
   { section: 'site', key: 'name', value: 'LensCraft' },
   { section: 'site', key: 'footer_text', value: 'LensCraft. All rights reserved.' },
+  { section: 'style', key: 'heading_weight', value: 'light' },
+  { section: 'style', key: 'body_weight', value: 'normal' },
+  { section: 'style', key: 'button_weight', value: 'medium' },
+  { section: 'style', key: 'emphasis_weight', value: 'semibold' },
+  { section: 'style', key: 'emphasis_italic', value: 'true' },
+  { section: 'style', key: 'site_name_weight', value: 'semibold' },
+  { section: 'style', key: 'site_name_italic', value: 'false' },
+  { section: 'style', key: 'heading_letter_spacing', value: 'normal' },
+  { section: 'style', key: 'site_name_letter_spacing', value: 'wide' },
 ];
 
 const INITIAL_GALLERY = [
