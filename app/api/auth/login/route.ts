@@ -3,13 +3,14 @@ import { checkCredentials, createSession, COOKIE_NAME, SESSION_DURATION } from '
 
 export async function POST(request: Request) {
   try {
-    const { username, password } = await request.json();
+    const { email, username, password } = await request.json();
+    const loginEmail = typeof email === 'string' ? email : username;
 
-    if (!username || !password) {
-      return NextResponse.json({ error: 'Username and password are required' }, { status: 400 });
+    if (typeof loginEmail !== 'string' || typeof password !== 'string' || !loginEmail.trim() || !password) {
+      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
-    if (!checkCredentials(username, password)) {
+    if (!(await checkCredentials(loginEmail, password))) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 

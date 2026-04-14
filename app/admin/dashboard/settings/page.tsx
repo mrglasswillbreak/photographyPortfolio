@@ -2,11 +2,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTheme } from 'next-themes';
 import { motion } from 'framer-motion';
-import { Upload, RotateCcw, Check, Loader2, Aperture, Sun, Moon, Monitor, Save, Link2, Mail } from 'lucide-react';
+import { Upload, RotateCcw, Check, Loader2, Aperture, Sun, Moon, Monitor, Save, Link2, Mail, Shield } from 'lucide-react';
 import { SOCIAL_PLATFORMS } from '@/components/ui/SocialIcons';
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE = 4 * 1024 * 1024;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MIN_ADMIN_PASSWORD_LENGTH = 8;
 
 const SOCIAL_PLACEHOLDERS: Record<string, string> = {
   instagram: 'https://instagram.com/yourprofile',
@@ -37,6 +39,10 @@ export default function SettingsPage() {
   // Site settings / footer links save states
   const [savingSection, setSavingSection] = useState<string | null>(null);
   const [savedSection, setSavedSection] = useState<string | null>(null);
+  const [adminEmail, setAdminEmail] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const [error, setError] = useState('');
 
@@ -46,14 +52,37 @@ export default function SettingsPage() {
   const sectionSavedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    fetch('/api/content')
-      .then((r) => r.json())
-      .then((data: Record<string, string>) => {
-        setContent(data);
-        setFaviconUrl(data['site_favicon_url'] || null);
-      })
-      .catch(() => setError('Failed to load settings'))
-      .finally(() => setIsLoading(false));
+    async function loadSettings() {
+      setIsLoading(true);
+
+      try {
+        const [contentRes, credentialsRes] = await Promise.all([
+          fetch('/api/content'),
+          fetch('/api/auth/credentials'),
+        ]);
+
+        if (!contentRes.ok) {
+          throw new Error('Failed to load settings');
+        }
+
+        if (!credentialsRes.ok) {
+          throw new Error('Failed to load admin login settings');
+        }
+
+        const contentData = (await contentRes.json()) as Record<string, string>;
+        const credentialsData = (await credentialsRes.json()) as { email?: string };
+
+        setContent(contentData);
+        setFaviconUrl(contentData['site_favicon_url'] || null);
+        setAdminEmail(credentialsData.email ?? '');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load settings');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    void loadSettings();
   }, []);
 
   // Clear any pending toast timers when the component unmounts.
@@ -196,6 +225,62 @@ export default function SettingsPage() {
       setSavingSection(null);
     }
   }, [content]);
+
+  const saveAdminCredentials = useCallback(async () => {
+    const normalizedEmail = adminEmail.trim().toLowerCase();
+
+    if (!normalizedEmail || !EMAIL_REGEX.test(normalizedEmail)) {
+      setError('Please enter a valid admin email address');
+      return;
+    }
+
+    if (!currentPassword) {
+      setError('Current password is required to update admin login credentials');
+      return;
+    }
+
+    if (newPassword && newPassword.length < MIN_ADMIN_PASSWORD_LENGTH) {
+      setError(`New password must be at least ${MIN_ADMIN_PASSWORD_LENGTH} characters`);
+      return;
+    }
+
+    if (newPassword && newPassword !== confirmPassword) {
+      setError('New password and confirmation do not match');
+      return;
+    }
+
+    setSavingSection('admin');
+    setError('');
+
+    try {
+      const res = await fetch('/api/auth/credentials', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: normalizedEmail,
+          currentPassword,
+          newPassword,
+        }),
+      });
+
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update admin login credentials');
+      }
+
+      setAdminEmail(normalizedEmail);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setSavedSection('admin');
+      if (sectionSavedTimerRef.current) clearTimeout(sectionSavedTimerRef.current);
+      sectionSavedTimerRef.current = setTimeout(() => setSavedSection(null), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update admin login credentials');
+    } finally {
+      setSavingSection(null);
+    }
+  }, [adminEmail, currentPassword, newPassword, confirmPassword]);
 
   if (isLoading) {
     return (
@@ -368,11 +453,97 @@ export default function SettingsPage() {
           </div>
         </motion.div>
 
-        {/* ── Footer Social Links ──────────────────────────────────────── */}
+        {/* ── Admin Login ─────────────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
+          className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <Shield className="w-4 h-4 text-neutral-500" />
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">Admin Login</h2>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
+                Admin Email
+              </label>
+              <input
+                type="email"
+                value={adminEmail}
+                onChange={(e) => setAdminEmail(e.target.value)}
+                autoComplete="email"
+                placeholder="admin@example.com"
+                className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
+                Current Password
+              </label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoComplete="current-password"
+                placeholder="Enter current password"
+                className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
+                New Password
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
+                placeholder="Leave blank to keep current password"
+                className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
+              />
+              <p className="mt-1.5 text-xs text-neutral-400 dark:text-neutral-500">
+                New passwords must be at least {MIN_ADMIN_PASSWORD_LENGTH} characters.
+              </p>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1.5">
+                Confirm New Password
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                placeholder="Re-enter the new password"
+                className="w-full px-3 py-2 text-sm bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-neutral-900 dark:focus:ring-white/50 transition-all"
+              />
+            </div>
+            <div className="flex items-center gap-3 pt-1">
+              <button
+                type="button"
+                onClick={saveAdminCredentials}
+                disabled={savingSection === 'admin'}
+                className="flex items-center gap-2 px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-800 dark:hover:bg-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+              >
+                {savingSection === 'admin' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                Save Login
+              </button>
+              {savedSection === 'admin' && (
+                <motion.span initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
+                  <Check className="w-4 h-4" /> Saved!
+                </motion.span>
+              )}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ── Footer Social Links ──────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
           className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
         >
           <div className="flex items-center gap-3 mb-5">
@@ -428,7 +599,7 @@ export default function SettingsPage() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.25 }}
           className="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
         >
           <div className="flex items-center gap-3 mb-5">

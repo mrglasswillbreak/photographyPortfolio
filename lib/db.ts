@@ -98,6 +98,19 @@ export async function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_page_views_created_at_session_id
     ON page_views (created_at, session_id)
   `;
+
+  await ensureAdminCredentialsTable();
+}
+
+export async function ensureAdminCredentialsTable() {
+  await sql`
+    CREATE TABLE IF NOT EXISTS admin_credentials (
+      id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+      email VARCHAR(320) NOT NULL,
+      password_hash TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `;
 }
 
 export async function getContent(section: string, key: string, defaultValue = ''): Promise<string> {
@@ -137,4 +150,39 @@ export async function getServices() {
     SELECT * FROM services ORDER BY display_order ASC
   `;
   return result.rows;
+}
+
+type AdminCredentialsRow = {
+  email: string;
+  password_hash: string;
+};
+
+export async function getAdminCredentials(): Promise<{ email: string; passwordHash: string } | null> {
+  await ensureAdminCredentialsTable();
+
+  const result = await sql<AdminCredentialsRow>`
+    SELECT email, password_hash
+    FROM admin_credentials
+    WHERE id = 1
+    LIMIT 1
+  `;
+
+  const row = result.rows[0];
+  if (!row) return null;
+
+  return {
+    email: row.email,
+    passwordHash: row.password_hash,
+  };
+}
+
+export async function upsertAdminCredentials(email: string, passwordHash: string) {
+  await ensureAdminCredentialsTable();
+
+  await sql`
+    INSERT INTO admin_credentials (id, email, password_hash, updated_at)
+    VALUES (1, ${email}, ${passwordHash}, NOW())
+    ON CONFLICT (id) DO UPDATE
+    SET email = EXCLUDED.email, password_hash = EXCLUDED.password_hash, updated_at = NOW()
+  `;
 }

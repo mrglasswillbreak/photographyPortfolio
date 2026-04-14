@@ -41,6 +41,7 @@ A modern, full-stack photography portfolio built with **Next.js**, **TypeScript*
 - **Services Manager** - Add, edit, reorder, and delete services shown on the portfolio
 - **Overview Dashboard** - At-a-glance stats for gallery images, services, and content fields with quick-action links
 - **Analytics** - 7-day visitor stats with page views, unique sessions, device types, and a sparkline trend chart
+- **Admin Credential Manager** - Update admin login email and password from the Settings page without redeploying
 - **Favicon Manager** - Upload a custom PNG/WebP favicon from the Settings page; changes take effect site-wide within minutes across browsers, iOS home-screen shortcuts, and installed app icons with no redeployment required; reset to the default camera-aperture icon at any time
 
 ## 🖼️ Sections
@@ -87,8 +88,9 @@ Copy `.env.example` to `.env.local` and set the following:
 
 | Variable | Description |
 |----------|-------------|
-| `ADMIN_USERNAME` | Admin login username |
-| `ADMIN_PASSWORD` | Admin login password |
+| `ADMIN_EMAIL` | Initial admin login email (used until changed in Admin Settings) |
+| `ADMIN_PASSWORD` | Initial admin login password (used until changed in Admin Settings) |
+| `ADMIN_USERNAME` | Optional legacy fallback used only when `ADMIN_EMAIL` is not set |
 | `JWT_SECRET` | Secret used to sign session tokens (`openssl rand -base64 32`) |
 | `DATABASE_URL` or `POSTGRES_URL` | Neon / Vercel Postgres connection string (`POSTGRES_URL` is also supported for legacy or auto-populated Vercel Postgres envs) |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob read/write token |
@@ -135,9 +137,9 @@ app/
 │       ├── content/    # Site content editor (all text fields)
 │       ├── services/   # Services manager
 │       ├── analytics/  # Visitor analytics (7-day stats, sparkline chart)
-│       └── settings/   # Site settings — favicon upload & management
+│       └── settings/   # Site settings — admin credentials, favicon, links, and contact email
 ├── api/
-│   ├── auth/           # Login & logout endpoints
+│   ├── auth/           # Login, logout, and admin credential endpoints
 │   ├── favicon/        # Dynamic favicon route (serves custom or default)
 │   ├── gallery/        # Gallery CRUD API
 │   ├── services/       # Services CRUD API
