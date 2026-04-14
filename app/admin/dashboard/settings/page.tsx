@@ -503,7 +503,7 @@ export default function SettingsPage() {
               </div>
 
               <p className="text-xs text-neutral-400 dark:text-neutral-500">
-                JPEG, PNG or WebP · max 4 MB · displayed in browser tabs and bookmarks
+                JPEG, PNG or WebP · max 4 MB · displayed in browser tabs, bookmarks, and installed app icons
               </p>
             </div>
           </div>

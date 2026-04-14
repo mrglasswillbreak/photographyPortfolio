@@ -2,22 +2,31 @@
   "name": "LensCraft Photography",
   "short_name": "LensCraft",
   "description": "Professional photography portfolio – capturing life's beautiful moments.",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui", "browser"],
   "background_color": "#111111",
   "theme_color": "#111111",
   "icons": [
     {
-      "src": "/apple-icon.png",
+      "src": "/api/pwa-icon?size=192",
       "type": "image/png",
-      "sizes": "180x180",
+      "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "/api/pwa-icon",
+      "src": "/api/pwa-icon?size=512",
       "type": "image/png",
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/api/pwa-icon?size=512",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     }
   ]
 }

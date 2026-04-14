@@ -32,7 +32,7 @@ A modern, full-stack photography portfolio built with **Next.js**, **TypeScript*
 - **Services Section** - Animated service cards managed via the admin CMS
 - **Contact Form** - Email delivery via Gmail SMTP (Nodemailer) with form validation and submission feedback
 - **About Section** - Photographer bio with editable statistics
-- **Custom Favicon** - Modern camera-aperture icon displayed in browser tabs and bookmarks; fully replaceable from the admin dashboard without redeploying
+- **Custom Favicon** - Modern camera-aperture icon displayed in browser tabs, bookmarks, iOS home-screen shortcuts, and installed PWA/full-screen app icons; fully replaceable from the admin dashboard without redeploying
 
 ### Admin CMS (`/admin`)
 - **JWT Authentication** - Secure login with httpOnly session cookies and middleware-enforced route protection
@@ -41,7 +41,7 @@ A modern, full-stack photography portfolio built with **Next.js**, **TypeScript*
 - **Services Manager** - Add, edit, reorder, and delete services shown on the portfolio
 - **Overview Dashboard** - At-a-glance stats for gallery images, services, and content fields with quick-action links
 - **Analytics** - 7-day visitor stats with page views, unique sessions, device types, and a sparkline trend chart
-- **Favicon Manager** - Upload a custom PNG/WebP favicon from the Settings page; changes take effect site-wide within minutes with no redeployment required; reset to the default camera-aperture icon at any time
+- **Favicon Manager** - Upload a custom PNG/WebP favicon from the Settings page; changes take effect site-wide within minutes across browsers, iOS home-screen shortcuts, and installed app icons with no redeployment required; reset to the default camera-aperture icon at any time
 
 ## 🖼️ Sections
 
