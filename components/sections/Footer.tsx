@@ -2,7 +2,9 @@
 import { memo, useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { fadeIn } from '@/utils/animations';
+import useSiteName from '@/components/hooks/useSiteName';
 import { SOCIAL_PLATFORMS } from '@/components/ui/SocialIcons';
+import SiteNameWordmark from '@/components/ui/SiteNameWordmark';
 
 function isSafeUrl(url: string): boolean {
   try {
@@ -15,6 +17,7 @@ function isSafeUrl(url: string): boolean {
 
 function Footer() {
   const currentYear = useMemo(() => new Date().getFullYear(), []);
+  const siteName = useSiteName();
   const [footerText, setFooterText] = useState('');
   const [socialUrls, setSocialUrls] = useState<Record<string, string>>({});
 
@@ -42,7 +45,7 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           <motion.a href="#home" className="text-2xl font-light tracking-wider text-neutral-900 dark:text-white" whileHover={{ scale: 1.02 }}>
-            LENS<span className="font-semibold">CRAFT</span>
+            <SiteNameWordmark siteName={siteName} />
           </motion.a>
           {activeSocials.length > 0 && (
             <nav className="flex items-center gap-4" aria-label="Social media links">
@@ -63,7 +66,7 @@ function Footer() {
             </nav>
           )}
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
-            {footerText || `© ${currentYear} LensCraft. All rights reserved.`}
+            {footerText || `© ${currentYear} ${siteName}. All rights reserved.`}
           </p>
         </div>
       </div>

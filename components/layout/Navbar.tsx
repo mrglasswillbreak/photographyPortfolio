@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import ThemeToggle from '@/components/ui/ThemeToggle';
+import SiteNameWordmark from '@/components/ui/SiteNameWordmark';
 import useSiteName from '@/components/hooks/useSiteName';
 import { navSlide } from '@/utils/animations';
 
@@ -89,7 +90,7 @@ function Navbar() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/api/favicon" alt="" aria-hidden="true" className="w-8 h-8 rounded-md flex-shrink-0" />
-            {siteName}
+            <SiteNameWordmark siteName={siteName} />
           </motion.a>
 
           <div className="hidden md:flex items-center gap-8">
